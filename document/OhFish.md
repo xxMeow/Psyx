@@ -7,9 +7,9 @@
 |    Metric | Google Cloud Platform VPS               |
 | --------: | --------------------------------------- |
 |  OS Image | Ubuntu 20.04 LTS                        |
-|        IP | IPv4                                    |
+|        IP | Static IPv4                             |
 |       CPU | 1 core                                  |
-|    Memory | 1G                                      |
+|    Memory | 2G                                      |
 |      Disk | SSD 10G                                 |
 | Fire Wall | Allow HTTP Traffic, Allow HTTPS Traffic |
 |   DNS PTR | Yes                                     |
@@ -19,8 +19,9 @@
 - Linux + Google Cloud Platform
 - Nginx
 - MySQL
-- Gunicorn
-- Python + Ananconda(Miniconda3) + Flask
+- Gunicorn + Flask
+- Supervisor
+- Python + Ananconda(Miniconda3)
 
 ### Server Setting
 
@@ -35,7 +36,7 @@
 - Add the following lines to `/etc/profile`:
 
     ```bash
-    # OhFish #
+    # OhFish ######################################################################
     
     # show timestamp of history
     HISTTIMEFORMAT="%F %T "
@@ -85,6 +86,12 @@
     ```bash
     $ ssh root@$(SERVER_IP)
     ```
+
+##### (option) Login to `snap` Store
+
+```bash
+$ sudo snap login xmx1025@gmail.com
+```
 
 ##### Environment Check
 
@@ -190,10 +197,9 @@
 > ```
 > $ apt depends [package name]
 > ```
->
-> 
 
 - tree
+- net-tools (including `netstat`)
 
 ##### Miniconda3
 
@@ -525,10 +531,10 @@
 - Add new user (a admin + a visitor)
 
     ```bash
-    mysql> CREATE USER 'xmx1025'@'localhost' IDENTIFIED BY 'lamj810327';
+    mysql> CREATE USER 'xmx1025'@'localhost' IDENTIFIED BY 'password';
     Query OK, 0 rows affected (0.00 sec)
     
-    mysql> CREATE USER 'visitor'@'%' IDENTIFIED BY '12345678';
+    mysql> CREATE USER 'visitor'@'%' IDENTIFIED BY 'password';
     Query OK, 0 rows affected (0.01 sec)
     ```
 
@@ -547,6 +553,21 @@
     Query OK, 0 rows affected (0.02 sec)
     ```
 
+- Port (Default: 3306)
+
+    Show the current port:
+
+    ```bash
+    mysql> SHOW VARIABLES LIKE 'port';
+    +---------------+-------+
+    | Variable_name | Value |
+    +---------------+-------+
+    | port          | 3306  |
+    +---------------+-------+
+    1 row in set (0.03 sec)
+    ```
+
+    ⚠️This port shouldn't be opened to the internet!
 
 ### Conclusion
 
