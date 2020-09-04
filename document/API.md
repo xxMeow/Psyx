@@ -14,7 +14,7 @@
 ##### Start
 
 ```bash
-gunicorn -w 1 -b 0.0.0.0:5000 API:api
+gunicorn --certfile=ohfish_me.crt --keyfile=ohfish_me.key --bind 0.0.0.0:5000 API:api
 ```
 
 ### /Pack
