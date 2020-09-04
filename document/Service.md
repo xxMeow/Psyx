@@ -86,9 +86,3 @@ $ conda activate tfenv
 - `flask=1.1.2`（新版的flask竟然对python版本没要求。。🐂🍺！）
 - `gunicorn=20.0.4=py38_0`
 
-在conda环境下使用pip安装以下包：
-
-```bash
-pip install Flask-RESTful
-```
-
