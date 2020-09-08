@@ -84,5 +84,40 @@ $ conda activate tfenv
 - `pymysql=0.9.2=py38_0`
 - `Supervisor=4.1.0=py38_0`（这个包会下载一个python3.8.5。。我不是已经有python3.8.3了吗！！差评！）
 - `flask=1.1.2`（新版的flask竟然对python版本没要求。。🐂🍺！）
+- `flask-cors=3.0.9`
 - `gunicorn=20.0.4=py38_0`
 
+### Flask & Gunicorn
+
+##### (Testing) Enable CORS in Flask
+
+```python
+from flask import Flask
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route("/")
+def helloWorld():
+  return "Hello, cross-origin-world!"
+```
+
+⚠️Chrome CORS should also be enabled!!
+
+##### Start Service
+
+```bash
+$ cd Psyx/service
+$ gunicorn --certfile=ohfish_me.crt --keyfile=ohfish_me.key --bind 0.0.0.0:5000 API:api
+```
+
+##### Stop Service
+
+```bash
+xmx1025@ohfish:~$ pstree -ap | grep gunicorn
+  |-gunicorn,164722 /usr/local/miniconda3/envs/tfenv/bin/gunicorn --certfile=ohfish_me.crt--keyfile=ohfish_
+  |   `-gunicorn,165226 /usr/local/miniconda3/envs/tfenv/bin/gunicorn --certfile=ohfish_me.crt--keyfile=ohfish_
+  |               |-grep,172699 --color=auto gunicorn
+xmx1025@ohfish:~$ kill -9 164722
+```

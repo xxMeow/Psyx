@@ -1,8 +1,10 @@
 from flask import Flask, Response, request, jsonify
+from flask_cors import CORS
 from PsyxDB import Pack, Reply
 import PsyxDB
 
 api = Flask(__name__)
+CORS(api)
 api.debug = True
 
 @api.route('/pack', methods=['GET'])

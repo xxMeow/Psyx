@@ -422,6 +422,29 @@ $ sudo snap login xmx1025@gmail.com
 
 - Forbid ip access by setting `default_server`
 
+- (Testing) Allow CORS requests:
+
+    - Edit the config file to add following lines:
+
+        ```bash
+        location /api {
+        	proxy_pass https://localhost:5000/;
+        	proxy_set_header Host $host;
+        	proxy_set_header X_Forwarded-For $proxy_add_x_forwarded_for;
+        	
+        	add_header Access-Control-Allow-Origin *;
+        	#add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
+        	add_header Access-Control-Allow-Methods 'GET, POST';
+        	add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
+        	
+        	#if ($request_method = 'OPTIONS') {
+            #    return 204;
+            #}
+        }
+        ```
+
+    - Flask also needs to be configured
+
 ##### MySQL
 
 - Install
