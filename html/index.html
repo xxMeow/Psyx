@@ -1,1 +1,51 @@
-<h1>Psyx!</h1>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Experiment Home</title>
+    <link href="css/index.css" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+    </script>
+    <script>
+    $(document).ready(function(){
+      $("form").submit(function(){
+        if (confirm("성함: " + $("#name").val() + "\n" + "소속: " + $("#major").val() + "\n" + "이메일: " + $("#email").val() + "\n" +"전화번호: " + $("#pnumber").val() + "\n" + "나이: " + $("#age").val() + "\n" + "성별: " + $("#sex").val())){
+          window.location.href = 'exp.html';
+          return false;    
+        }
+      });
+    });
+    </script>
+  </head>
+  <body>
+    <div class = "info" action="">
+      <h3>다음 항목을 빠짐 없이 기입해주시기 바랍니다</h3>
+      <form id="info">
+        <input type="text" id="name" name="name" placeholder="성함">
+        <input type="text" id="major" name="major" placeholder="소속 (학교/직장)">
+        <input type="text" id="email" name="email" placeholder="이메일 (example@gmail.com)">
+        <input type="text" id="pnumber" name="pnumber" placeholder="전화번호 (010-XXXX-XXXX)">
+        <select id="age" name="age" class="alignleft">
+          <option value="" disabled selected>만 나이</option>
+          <option value="18~25">18세~25세</option>
+          <option value="25~32">25세~32세</option>
+          <option value="33~40">33세~40세</option>
+          <option value="41+">41세 이상</option>
+        </select>
+        <select id="sex" name="sex" class="alignright">
+          <option value="" disabled selected>성별</option>
+          <option value="남">남성</option>
+          <option value="여">여성</option>
+          <option value="">기타</option>
+        </select>
+      <input type="submit" class="submitbtn" value="제출">
+      </form>
+      
+    </div>
+    <footer> 
+      <h6 class = "hcenter">Copyrights (C) 2020 Korea University. All rights reserved.</h6>
+    </footer>
+    <script src="js/index.js"></script>
+  </body>
+</html>
