@@ -9,56 +9,65 @@
 >
 > 콘텐츠가 붙여있을 때 contents-type값을 성정해줘야 함 (여기서는 "application/json"임)
 
-### Gunicorn + Flask
+### Admin
 
-##### Start
+##### `GET : ohfish.me/api/admin/list`
 
-```bash
-gunicorn --certfile=ohfish_me.crt --keyfile=ohfish_me.key --bind 0.0.0.0:5000 API:api
-```
+> 기존 실험 세트의 상세 정보 읽어오기
 
-### /Pack
-
-##### GET(gender, age) -> packName
-
-- 요청: `https://ohfish.me/pack?gender=1&age=23`
-
-- 리턴:
+- Return
 
     ```json
     {
-        "pairNum" : 300,
-        "packName" : "packxxx"
-    }
-    ```
-
-### /Reply
-
-##### POST(packName) -> Send a reply
-
-- 요청: `https://ohfish.me/reply`
-
-    콘텐츠:
-
-    ```json
-    {
-        "packName" : "packxxx",
-        "mail" : "xxxx@gmail.com",
-        "gender" : 1,
-        "age" : 25,
-        "studentNo" : "xx38490023",
-        "affiliation" : "X대학교",
-        "answers" : [
-            ["j", 2.0031],
-            ["x", 3.0000],
-            ["f", 2.8977],
-            ["j", 1.2404],
-            ["j", 1.5003]
+        "length" : 4,
+        "packs" : [
+            {
+                "pack_id" : 1,
+                "pack_name" : "aaaa",
+                "age_lower" : 20,
+                "age_upper" : 29,
+                "gender" : 1,
+                "date" : "2002/01/28",
+                "reply_num" : 34
+            },
+            {
+                "pack_id" : 2,
+                "pack_name" : "bbbb",
+                ...
+            },
+            {
+                "pack_id" : 3,
+                "pack_name" : "cccc",
+                ...
+            },
+            {
+                "pack_id" : 4,
+                "pack_name" : "dddd",
+                ...
+            }
         ]
     }
     ```
 
-- 리턴:
+##### `POST : ohfish.me/api/admin/add`
+
+> 새 실험 세트 추가
+
+- Body
+
+    ```json
+    {
+        "age_lower" : 20,
+        "age_upper" : 29,
+        "gender" : 1,
+        "pack_name" : "xxxx",
+    }
+    ```
+
+    - 나이는 closed interval로 설정됨
+    - pack_name은 소문자와 숫자만으로 구성됨
+
+- Return
 
     ```json
     {
@@ -66,41 +75,88 @@ gunicorn --certfile=ohfish_me.crt --keyfile=ohfish_me.key --bind 0.0.0.0:5000 AP
     }
     ```
 
-##### GET(packName) -> All Replies to the Pack
+    - 실패할 때 failed로 반환됨
+    - 추가가 성공적으로 실행됐을 때 새로고침하라고 팝업창 뜸
 
-- 요청: `https://ohfish.me/reply?packname=packxxx`
+##### `GET : ohfish.me/api/admin/delete?id=3`
 
-- 리턴:
+> 기존 실험 세트 삭제
+
+- Return
 
     ```json
     {
-        "answerNum" : 5,
-        "replyNum" : 3,
-        "replies" : [
-                        {
-                            "mail" : "aaaa@gmail.com",
-                            "gender" : 1,
-                            "age" : 25,
-                            "studentNo" : "aa2000000",
-                            "affiliation" : "A대학교",
-                            "answers" : "jffxj"
-                        },
-                        {
-                            "mail" : "bbbb@naver.com",
-                            "gender" : 2,
-                            "age" : 20,
-                            "studentNo" : "bb200100",
-                            "affiliation" : "B대학교",
-                            "answers" : "xfjxx"
-                        },
-                        {
-                            "mail" : "cccc@any.com",
-                            "gender" : 2,
-                            "age" : 27,
-                            "studentNo" : "cc38002222",
-                            "affiliation" : "C회사",
-                            "answers" : "jjjjf"
-                        }
-                    ]
+        "result" : "succeed"
     }
     ```
+
+##### `GET : ohfish.me/api/admin/download?id=7`
+
+>  응답 csv 다운로드
+
+- Return
+
+    ```json
+    미정
+    ```
+
+### Participant
+
+##### `POST : ohfish.me/api/reply/select`
+
+> 나이와 성별로 참여할 실험 세트 선정
+
+- Body
+
+    ```json
+    {
+        "mail" : "aaaa@gmail.com",
+        "gender" : 1,
+        "age" : 25,
+        "student_no" : "aa2000000",
+        "affiliation" : "A대학교"
+    }
+    ```
+
+- Return
+
+    ```json
+    {
+        "result" : "succeed"
+    }
+    ```
+    - 인적사항을 제출하면 서버에서 검사해 줄 거임. 검사 통과해서 응답하기 시작하면 인적사항을 변견하면 절대 안 되니까 막아줘야함
+    - 인적사항에 불법 입력이 존재하거나 조건에 맞는 실험 세트가 없을 때 failed로 반환되고 이 때 pack_name은 무시하면 됨
+
+##### `POST : ohfish.me/api/reply/submit`
+
+> 응답 제출
+
+- Body
+
+    ```json
+    {
+        "mail" : "aaaa@gmail.com",
+        "gender" : 1,
+        "age" : 25,
+        "student_no" : "aa2000000",
+        "affiliation" : "A대학교",
+        "answers" : [
+            ["j", 2.3341],
+            ["f", 1.0004],
+            [" ", 3.0000],
+            ["f", 0.9902],
+            ...
+        ]
+    }
+    ```
+
+- Return
+
+    ```json
+    {
+        "result" : "succeed"
+    }
+    ```
+    
+    

@@ -108,8 +108,10 @@ def helloWorld():
 ##### Start Service
 
 ```bash
+$ conda deactivate tfenv
 $ cd Psyx/service
 $ gunicorn --certfile=ohfish_me.crt --keyfile=ohfish_me.key --bind 0.0.0.0:5000 API:api
+# Add -D to run as a deamon
 ```
 
 ##### Stop Service
