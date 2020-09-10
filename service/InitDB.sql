@@ -12,9 +12,9 @@ DROP TABLE IF EXISTS `reply`;
 CREATE TABLE `pack` (
     `p_id` INT NOT NULL AUTO_INCREMENT,
     `gender` TINYINT NOT NULL,
-    `age_low` TINYINT NOT NULL,
-    `age_high` TINYINT NOT NULL,
-    `name` CHAR(32) NOT NULL UNIQUE, 
+    `age_lower` TINYINT NOT NULL,
+    `age_upper` TINYINT NOT NULL,
+    `pack_name` CHAR(32) NOT NULL UNIQUE, 
     `date` DATETIME NOT NULL,
     PRIMARY KEY (`p_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -44,7 +44,7 @@ INSERT INTO `reply` VALUES (NULL, 1, 'aaaa@gmail.com', '111111111', 1, 25, '고�
     ["i", 2.6569],
     ["j", 2.1122]
 ]');
-INSERT INTO `reply` VALUES (NULL, 2, 'aaaa@gmail.com', '111111111', 1, 25, '고려대학교', sysdate(), '[
+INSERT INTO `reply` VALUES (NULL, 1, 'bbbb@gmail.com', '111111112', 1, 23, '고려대학교', sysdate(), '[
     ["j", 2.4401],
     ["x", 3.0000],
     ["i", 1.0433],
@@ -54,3 +54,4 @@ INSERT INTO `reply` VALUES (NULL, 2, 'aaaa@gmail.com', '111111111', 1, 25, '고�
 
 SELECT * FROM `pack`;
 SELECT * FROM `reply`;
+SELECT p.*, r.count FROM pack p LEFT JOIN (SELECT p_id, COUNT(*) count FROM reply GROUP BY p_id) r ON p.p_id=r.p_id;

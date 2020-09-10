@@ -49,9 +49,14 @@
     }
     ```
 
-##### `POST : ohfish.me/api/admin/add`
+##### `POST : ohfish.me/api/admin/create`
 
 > 새 실험 세트 추가
+>
+> - ```bash
+>     # make new pack
+>     cd; mkdir what; cd what; touch w{1..600}.jpg; cd;
+>     ```
 
 - Body
 
@@ -78,7 +83,7 @@
     - 실패할 때 failed로 반환됨
     - 추가가 성공적으로 실행됐을 때 새로고침하라고 팝업창 뜸
 
-##### `GET : ohfish.me/api/admin/delete?id=3`
+##### `GET : ohfish.me/api/admin/remove?id=3`
 
 > 기존 실험 세트 삭제
 
@@ -102,7 +107,7 @@
 
 ### Participant
 
-##### `POST : ohfish.me/api/reply/select`
+##### `POST : ohfish.me/api/reply/start`
 
 > 나이와 성별로 참여할 실험 세트 선정
 

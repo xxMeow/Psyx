@@ -2,6 +2,7 @@ from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
 import PsyxDB
 from PsyxDB import Tool
+import sys
 
 api = Flask(__name__)
 CORS(api)
@@ -9,6 +10,7 @@ api.debug = True
 
 @api.route('/admin/list', methods=['GET']) # FIXME:
 def list_packs():
+    print(' * ',sys._getframe().f_code.co_name)
     result = {}
     packs = PsyxDB.get_all_packs()
     result['pack_num'] = len(packs)
@@ -18,11 +20,12 @@ def list_packs():
 
 @api.route('/admin/create', methods=['POST']) # FORM
 def create_pack():
+    print(' * ',sys._getframe().f_code.co_name)
     # get inputs from form
     gender = request.form.get('gender', type=int)
     age_lower = request.form.get('age_lower', type=int)
     age_upper = request.form.get('age_upper', type=int)
-    pack_name = request.form.get('pack_name', type=str)a
+    pack_name = request.form.get('pack_name', type=str)
     # make result
     result = {
         'result' : 'failed'
@@ -40,8 +43,10 @@ def create_pack():
             result['message'] = 'Invalid Folder'
     return jsonify(result)
 
+
 @api.route('/admin/remove', methods=['GET']) # id
 def remove_pack():
+    print(' * ',sys._getframe().f_code.co_name)
     # mv Pack Folder
     p_id = request.args.get('id', type=int)
     result = {
@@ -61,6 +66,7 @@ def remove_pack():
 
 @api.route('/admin/download', methods=['GET']) # id FIXME:
 def download_pack():
+    print(' * ',sys._getframe().f_code.co_name)
     p_id = request.args.get('id', type=int)
     result = PsyxDB.get_all_replies(p_id)
     if result == None: # TODO: make csv and start downloading
@@ -71,14 +77,15 @@ def download_pack():
     return jsonify(result)
 
 
-@api.route('/reply/start', methods=['POST']) # FORM # TODO: limit the data type when getting input!
+@api.route('/reply/start', methods=['POST']) # FORM
 def start_reply():
+    print(' * ',sys._getframe().f_code.co_name)
     # get inputs from form
-    mail = request.form.get('mail', '')
-    student_no = request.form.get('student_no', '')
-    gender = request.form.get('gender', '')
-    age = request.form.get('age', '')
-    affiliation = request.form.get('affiliation', '')
+    mail = request.form.get('mail', type=str)
+    student_no = request.form.get('student_no', type=str)
+    gender = request.form.get('gender', type=int)
+    age = request.form.get('age',type=int)
+    affiliation = request.form.get('affiliation', type=str)
 
     # check inputs
     result = {
@@ -113,6 +120,7 @@ def start_reply():
 
 @api.route('/reply/submit', methods=['POST']) # JSON
 def submit_reply():
+    print(' * ',sys._getframe().f_code.co_name)
     data = request.get_json() # TODO: force=True?
 
     p_id = data['p_id']
