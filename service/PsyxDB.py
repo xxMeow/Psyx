@@ -31,6 +31,7 @@ class Tool():
     def check_gender(cls, gender):
         print(' * ',sys._getframe().f_code.co_name)
         if not isinstance(gender, int):
+            print('\t\tgender=', gender, ' is', str(type(gender)))
             return False
         if gender == cls.GENDER_F or gender == cls.GENDER_M:
             return True
@@ -244,14 +245,16 @@ def add_reply(p_id, mail, student_no, gender, age, affiliation, answers):
         and Tool.check_student_no(student_no) and Tool.check_affiliation(affiliation)) == True:
         # TODO: check age and gender with the pack's condition?
         # BUT: if p_id doesn't exist, the following insertion will abort anyway
-        if len(answers) == Tool.PACK_SIZE:
+        if len(answers) > 0: # == Tool.PACK_SIZE: # TODO: check the number of answers
+            answers_str = json.dumps(answers)
+
             # TODO: is it ok to insert JSON data like this?
             sql = 'INSERT INTO reply VALUES (NULL, %s, %s, %s, %s, %s, %s, sysdate(), %s)'
             db = _login_as_visitor()
             with db.cursor() as cursor:
                 try:
-                    cursor.execute(sql, (p_id, mail, student_no, gender, age, affiliation, answers))
-                    cursor.commit()
+                    cursor.execute(sql, (p_id, mail, student_no, gender, age, affiliation, answers_str))
+                    db.commit()
                     result = True
                 except:
                     db.rollback()

@@ -1,60 +1,52 @@
 # API
 
-> JSON에서는
->
-> - {}는 object이고 파이썬의 dictionary처럼 key:value 쌍으로 구성됨. key는 꼭 문자열이어야 하고 value는 제한이 없음
-> - []는 array임. 엔트리들이 서로 타입 다를 수 있음
->
-> HTTP Request할 때 보통 짧은 매개변수는 URL뒤에다 붙이고 긴 매개변수나 서버한테 제출할 내용은 따로 콘텐츠에다 넣음
->
-> 콘텐츠가 붙여있을 때 contents-type값을 성정해줘야 함 (여기서는 "application/json"임)
+- 나이 구간은 closed interval임. 즉, `age_lower <= age <= age_upper`의 규칙 적용됨
+- 성별은 실제값으로 `1`과 `2`만 허용 (F=1, M=2)
+- `pack_name`은풀더 이름이며 이에는 대/소문자와 숫자만 들어갈 수 있음
+- 응답 페이지
+    - 인적사항 확인 단계 : 인적사항을 서버한테 보냄
+        - 서버가 모든 입력항목을 validation함
+        - 통과하면 해당 실험자의 나이와 성별에 맞는 세트를 검색
+        - 세트가 존재하면 `p_id`와 `pack_path` 반환
+            - `p_id`는 프런트 엔드가 저장해서 마지막 제출할 때 그대로 제출해야됨 (아니면 서버가 어느 세트에 응답하는 지 모름)
+            - `pack_path`는 응답할 사진이 저장되어있는 경로임. 이 경로 뒤에 사진 파일 이름만 붙여주면 사진의 `src`로 쓸 수 있음
+    - 실험자 응답 단계
+    - 응답 제출 단계 : (`p_id` + 인적사항 + 응답)을 서버한테 보냄
 
 ### Admin
 
 ##### `GET : ohfish.me/api/admin/list`
 
-> 기존 실험 세트의 상세 정보 읽어오기
+> 기존 모든 실험 세트의 상세 정보 읽어오기
 
 - Return
 
     ```json
     {
-        "length" : 4,
-        "packs" : [
+        "pack_list": [
             {
-                "pack_id" : 1,
-                "pack_name" : "aaaa",
-                "age_lower" : 20,
-                "age_upper" : 29,
-                "gender" : 1,
-                "date" : "2002/01/28",
-                "reply_num" : 34
-            },
-            {
-                "pack_id" : 2,
-                "pack_name" : "bbbb",
-                ...
-            },
-            {
-                "pack_id" : 3,
-                "pack_name" : "cccc",
-                ...
-            },
-            {
-                "pack_id" : 4,
-                "pack_name" : "dddd",
-                ...
+                "age_lower": 20,
+                "age_upper": 29,
+                "count": 4,
+                "date": "Thu, 10 Sep 2020 22:07:21 GMT",
+                "gender": 2,
+                "p_id": 10,
+                "pack_name": "what"
             }
-        ]
+        ],
+        "pack_num": 1
     }
     ```
+    
+    - `pack_num` : 현재의 세트 총수
+    - `pack_list` : element가 세트 정보인 리스트 (세트 정보에 있는 count는 해당 세트가 현재 이미 받은 응답수)
 
 ##### `POST : ohfish.me/api/admin/create`
 
-> 새 실험 세트 추가
+> ⚠️새 실험 세트를 먼저 서버에 올려서야 요청 가능 (올리고 요청이 실패한 경우 다시 올려야 됨)
 >
 > - ```bash
->     # make new pack
+>     # make new pack (여기 명령어 프런트엔드와 상관 없음)
 >     cd; mkdir what; cd what; touch w{1..600}.jpg; cd;
 >     ```
 
@@ -62,26 +54,27 @@
 
     ```json
     {
-        "age_lower" : 20,
-        "age_upper" : 29,
-        "gender" : 1,
-        "pack_name" : "xxxx",
+        "age_lower": 20,
+        "age_upper": 29,
+        "gender": 1,
+        "pack_name": "xxxx"
     }
     ```
 
     - 나이는 closed interval로 설정됨
-    - pack_name은 소문자와 숫자만으로 구성됨
+    - pack_name은 대/소문자와 숫자만으로 구성됨
 
 - Return
 
     ```json
     {
-        "result" : "succeed"
+        "result": "succeed",
+        "p_id": 10
     }
-    ```
-
-    - 실패할 때 failed로 반환됨
-    - 추가가 성공적으로 실행됐을 때 새로고침하라고 팝업창 뜸
+```
+    
+    - 실패할 때 failed로 반환됨 (에러 메세지는 `result[message]`로 읽을 수 있음)
+    - 추가가 성공적으로 실행됐을 때 새로고침하라고 팝업창으로 사용자에게 알림 (필요할지 모르겠지만 새로 추가된 세트의 `p_id`도 반환됨)
 
 ##### `GET : ohfish.me/api/admin/remove?id=3`
 
@@ -91,9 +84,11 @@
 
     ```json
     {
-        "result" : "succeed"
+        "result": "succeed"
     }
     ```
+    
+    - 실패할 때 failed로 반환됨 (에러 메세지는 `result[message]`로 읽을 수 있음)
 
 ##### `GET : ohfish.me/api/admin/download?id=7`
 
@@ -115,23 +110,27 @@
 
     ```json
     {
-        "mail" : "aaaa@gmail.com",
-        "gender" : 1,
-        "age" : 25,
-        "student_no" : "aa2000000",
-        "affiliation" : "A대학교"
+        "mail": "aaaa@gmail.com",
+        "gender": 1,
+        "age": 25,
+        "student_no": "aa2000000",
+        "affiliation": "A대학교"
     }
     ```
+
+    - 나이와 성별만 빼고 모든 항목이 문자열임
 
 - Return
 
     ```json
     {
-        "result" : "succeed"
+        "p_id": 10,
+        "pack_path": "/home/xmx1025/Psyx/packbase/what",
+        "result": "succeed"
     }
     ```
-    - 인적사항을 제출하면 서버에서 검사해 줄 거임. 검사 통과해서 응답하기 시작하면 인적사항을 변견하면 절대 안 되니까 막아줘야함
-    - 인적사항에 불법 입력이 존재하거나 조건에 맞는 실험 세트가 없을 때 failed로 반환되고 이 때 pack_name은 무시하면 됨
+    - 인적사항을 제출하면 서버가 모든 항목을 검사해 주니까 프런트엔드에서는 안 해도 됨
+    - 실패할 때 failed로 반환됨 (에러 메세지는 `result[message]`로 읽을 수 있음)
 
 ##### `POST : ohfish.me/api/reply/submit`
 
@@ -141,27 +140,30 @@
 
     ```json
     {
-        "mail" : "aaaa@gmail.com",
-        "gender" : 1,
-        "age" : 25,
-        "student_no" : "aa2000000",
-        "affiliation" : "A대학교",
-        "answers" : [
-            ["j", 2.3341],
-            ["f", 1.0004],
-            [" ", 3.0000],
-            ["f", 0.9902],
-            ...
+        "p_id": 10,
+        "mail": "ss12@any.com",
+        "student_no": "hsdbjsbj33",
+        "gender": 2,
+        "age": 23,
+        "affiliation": "mars",
+        "answers": [
+            ["j", 2.2933],
+            ["x", 3.0000],
+            ["x", 3.0000],
+            ["j", 0.9863],
+            ["x", 3.0000]
         ]
     }
     ```
+
+    - `p_id`, 나이, 성별, 응답시간 4개만 빼고 모든 항목이 문자열임
 
 - Return
 
     ```json
     {
-        "result" : "succeed"
+        "result": "succeed"
     }
     ```
     
-    
+    - 세트를 선택하고 나서 정보가 중간에 바뀌지만 않았으면 에러 뜰 일이 없는게 정상

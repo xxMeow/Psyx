@@ -44,7 +44,7 @@ INSERT INTO `reply` VALUES (NULL, 1, 'aaaa@gmail.com', '111111111', 1, 25, '고�
     ["i", 2.6569],
     ["j", 2.1122]
 ]');
-INSERT INTO `reply` VALUES (NULL, 1, 'bbbb@gmail.com', '111111112', 1, 23, '고려대학교', sysdate(), '[
+INSERT INTO `reply` VALUES (NULL, 10, 'bbbb@gmail.com', '111111112', 2, 23, '고려대학교', sysdate(), '[
     ["j", 2.4401],
     ["x", 3.0000],
     ["i", 1.0433],

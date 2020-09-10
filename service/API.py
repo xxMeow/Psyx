@@ -81,29 +81,31 @@ def download_pack():
 def start_reply():
     print(' * ',sys._getframe().f_code.co_name)
     # get inputs from form
-    mail = request.form.get('mail', type=str)
-    student_no = request.form.get('student_no', type=str)
-    gender = request.form.get('gender', type=int)
-    age = request.form.get('age',type=int)
-    affiliation = request.form.get('affiliation', type=str)
+    data = request.get_json()
+
+    mail = data['mail']
+    student_no = data['student_no']
+    gender = data['gender']
+    age = data['age']
+    affiliation = data['affiliation']
 
     # check inputs
     result = {
         'result' : 'failed'
     }
     if Tool.check_mail(mail) != True:
-        result['message'] = 'Invalid Mail Address'
+        result['message'] = str(mail) + 'Invalid Mail Address'
     if Tool.check_gender(gender) != True:
-        result['message'] = 'Invalid Gender'
+        result['message'] = str(gender) + 'Invalid Gender'
         return jsonify(result)
     if Tool.check_age(age) != True:
-        result['message'] = 'Invalid Age'
+        result['message'] = str(age) + 'Invalid Age'
         return jsonify(result)
     if Tool.check_student_no(student_no) != True:
-        result['message'] = 'Invalid Student ID'
+        result['message'] = str(student_no) + 'Invalid Student ID'
         return jsonify(result)
     if Tool.check_affiliation(affiliation) != True:
-        result['message'] = 'Invalid Affiliation'
+        result['message'] = str(affiliation) + 'Invalid Affiliation'
         return jsonify(result)
 
     # get pack path
