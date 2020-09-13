@@ -1,0 +1,54 @@
+{
+    "set" : "female_stimuli",
+    "age_lower" : 20,
+    "age_upper" : 29,
+    "sex" : 1,
+    "date" : "Thu, 10 Sep 2020 09:00:00 GMT",
+    "replies" : [
+        {
+            "id" : "2020140200",
+            "name" : "일일일",
+            "age" : 21,
+            "phone" : "010-1111-1111",
+            "email" : "1111@naver.com",
+            "date" : "Thu, 10 Sep 2020 17:32:05 GMT",
+            "answers" : [
+                ["j", 2.3301, "rici_female_1_00206_ori.jpg", "rici_female_1_00206_inv.jpg"],
+                ["f", 1.5442, "rici_female_1_00112_ori.jpg", "rici_female_1_00112_inv.jpg"],
+                [" ", 3.0000, "rici_female_1_00005_ori.jpg", "rici_female_1_00005_inv.jpg"],
+                [" ", 3.0000, "rici_female_1_00078_ori.jpg", "rici_female_1_00078_inv.jpg"],
+                ["j", 1.2003, "rici_female_1_00174_ori.jpg", "rici_female_1_00174_inv.jpg"]
+            ]
+        },
+        {
+            "id" : "2019330416",
+            "name" : "이이이",
+            "age" : 24,
+            "phone" : "010-2222-2222",
+            "email" : "2222@gmail.com",
+            "date" : "Thu, 10 Sep 2020 21:00:22 GMT",
+            "answers" : [
+                ["f", 2.2001, "rici_female_1_00177_ori.jpg", "rici_female_1_00177_inv.jpg"],
+                ["j", 2.1992, "rici_female_1_00203_ori.jpg", "rici_female_1_00203_inv.jpg"],
+                ["j", 0.9881, "rici_female_1_00142_ori.jpg", "rici_female_1_00142_inv.jpg"],
+                ["f", 1.7003, "rici_female_1_00223_ori.jpg", "rici_female_1_00223_inv.jpg"],
+                ["j", 0.5614, "rici_female_1_00004_ori.jpg", "rici_female_1_00004_inv.jpg"]
+            ]
+        },
+        {
+            "id" : "2020140171",
+            "name" : "삼삼삼",
+            "age" : 22,
+            "phone" : "010-3333-3333",
+            "email" : "3333@korea.ac.kr",
+            "date" : "Thu, 10 Sep 2020 22:07:21 GMT",
+            "answers" : [
+                ["j", 1.3401, "rici_female_1_00139_ori.jpg", "rici_female_1_00139_inv.jpg"],
+                ["f", 2.7903, "rici_female_1_00198_ori.jpg", "rici_female_1_00198_inv.jpg"],
+                ["f", 1.4442, "rici_female_1_00042_ori.jpg", "rici_female_1_00042_inv.jpg"],
+                ["f", 0.7902, "rici_female_1_00200_ori.jpg", "rici_female_1_00200_inv.jpg"],
+                [" ", 3.0000, "rici_female_1_00199_ori.jpg", "rici_female_1_00199_inv.jpg"]
+            ]
+        }
+    ]
+}

@@ -2,15 +2,22 @@ from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
 import PsyxDB
 from PsyxDB import Tool
-import sys
+import sys, os, shutil, random, json
+from werkzeug.utils import secure_filename
 
 api = Flask(__name__)
 CORS(api)
 api.debug = True
 
-@api.route('/admin/list', methods=['GET']) # FIXME:
+
+# @api.route('/admin/login', method=['POST'])
+# def login():
+#     return True
+
+
+@api.route('/admin/list', methods=['GET']) # FIXME: null to 0
 def list_packs():
-    print(' * ',sys._getframe().f_code.co_name)
+    print('\n * ',sys._getframe().f_code.co_name)
     result = {}
     packs = PsyxDB.get_all_packs()
     result['pack_num'] = len(packs)
@@ -20,33 +27,62 @@ def list_packs():
 
 @api.route('/admin/create', methods=['POST']) # FORM
 def create_pack():
-    print(' * ',sys._getframe().f_code.co_name)
-    # get inputs from form
-    gender = request.form.get('gender', type=int)
+    print('\n * ',sys._getframe().f_code.co_name)
+    # check if the post request has the file part
+    if 'file' not in request.files:
+        return 'Nothing Uploaded'
+    # get other args
+    pack_name = request.form.get('pack_name', type=str)
+    if Tool._check_pack_name(pack_name) != True:
+        return 'Invalid Pack Name'
     age_lower = request.form.get('age_lower', type=int)
     age_upper = request.form.get('age_upper', type=int)
-    pack_name = request.form.get('pack_name', type=str)
-    # make result
-    result = {
-        'result' : 'failed'
-    }
-    # mv new pack in
-    if Tool.move_pack_in(pack_name) == True:
-        # add to DB
-        p_id = PsyxDB.add_pack(gender=gender, age_lower=age_lower, age_upper=age_upper, pack_name=pack_name)
-        if p_id != 0:
-            result['result'] = 'succeed'
-            result['p_id'] = p_id
-        else:
-            result['message'] = 'DB Operation Failed'
-    else:
-            result['message'] = 'Invalid Folder'
-    return jsonify(result)
+    if not Tool.check_age(age_lower) or not Tool.check_age(age_upper): # TODO: check age_bound()
+        return 'Invalid Age Bound'
+    sex = int(request.form.get('sex', type=str))
+    if Tool.check_sex(sex) == False:
+        return 'Invalid Sex'
+    print('\t* sex:', sex)
+    print('\t* age:', age_lower, '~', age_upper)
+    print('\t* pack_name:', pack_name)
+
+    # check if there's any folder with the same name
+    UPLOAD_FOLDER = '/home/xmx1025/Psyx/packs' # TODO: use config
+    dst_path = os.path.join(UPLOAD_FOLDER, pack_name)
+    if os.path.exists(dst_path):
+        return 'pack existed' # TODO: return error code?
+    os.makedirs(dst_path)
+
+    # put this two functions to the Tool class
+    def allowed_file(filename):
+        ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    def absorb_filename(filename):
+        return filename.split(os.sep)[-1]
+    
+    for f in request.files.getlist('file'):
+        print('file part =', type(f))
+        print(f)
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if f.filename == '':
+            return 'No selected file'
+        if f and allowed_file(f.filename):
+            filename = secure_filename(absorb_filename(f.filename))
+            print('name :', filename)
+            f.save(os.path.join(dst_path, filename))
+
+    # add to db
+    p_id = PsyxDB.add_pack(sex=sex, age_lower=age_lower, age_upper=age_upper, pack_name=pack_name)
+    if p_id == 0:
+        # TODO: delete folder
+        return 'failed to add to db'
+    return 'Pack ' + str(p_id) + ' Added.'
 
 
 @api.route('/admin/remove', methods=['GET']) # id
 def remove_pack():
-    print(' * ',sys._getframe().f_code.co_name)
+    print('\n * ',sys._getframe().f_code.co_name)
     # mv Pack Folder
     p_id = request.args.get('id', type=int)
     result = {
@@ -54,22 +90,26 @@ def remove_pack():
     }
     pack_name = PsyxDB.delete_pack(p_id)
     if pack_name != None:
-        if Tool.move_pack_out(pack_name) == True:
+        pack_path = os.path.join(Tool.PACK_BASE_PATH, pack_name)
+        print('\tRemove Pack')
+        print('\t\t' + pack_path)
+        if os.path.exists(pack_path) and os.path.isdir(pack_path) == True:
+            shutil.rmtree(pack_path)
             result['result'] = 'succeed'
         else:
-            result['message'] = 'Can not remove this pack from base'
+            result['message'] = 'ERROR: packbase damaged'
     else:
-        result['message'] = 'Can not delete this pack from DB'
+        result['message'] = 'p_id={} not found'.format(p_id)
 
     return jsonify(result)
 
 
-@api.route('/admin/download', methods=['GET']) # id FIXME:
-def download_pack():
-    print(' * ',sys._getframe().f_code.co_name)
+@api.route('/admin/report', methods=['GET']) # id FIXME:
+def report_pack():
+    print('\n * ',sys._getframe().f_code.co_name)
     p_id = request.args.get('id', type=int)
     result = PsyxDB.get_all_replies(p_id)
-    if result == None: # TODO: make csv and start downloading
+    if result == None: # TODO: return
         result = {
             'result' : 'failed',
             'message' : 'No Replies Yet'
@@ -79,65 +119,87 @@ def download_pack():
 
 @api.route('/reply/start', methods=['POST']) # FORM
 def start_reply():
-    print(' * ',sys._getframe().f_code.co_name)
+    print('\n * ',sys._getframe().f_code.co_name)
     # get inputs from form
     data = request.get_json()
-
-    mail = data['mail']
-    student_no = data['student_no']
-    gender = data['gender']
+    # print(data) # FIXME: why why why
+    # data = json.loads(data)
+    print(data)
+    name = data['name']
+    email = data['email']
+    no = data['no']
+    sex = data['sex']
     age = data['age']
-    affiliation = data['affiliation']
+    phone = data['phone']
+    print(' * Testing args..')
+    print('\t', name)
+    print('\t', email)
+    print('\t', sex)
+    print('\t', age)
+    print('\t', no)
+    print('\t', phone)
 
     # check inputs
     result = {
         'result' : 'failed'
     }
-    if Tool.check_mail(mail) != True:
-        result['message'] = str(mail) + 'Invalid Mail Address'
-    if Tool.check_gender(gender) != True:
-        result['message'] = str(gender) + 'Invalid Gender'
+    if Tool.check_name(name) != True:
+        result['message'] = str(name) + 'Invalid Name'
+        return jsonify(result)
+    if Tool.check_email(email) != True:
+        result['message'] = str(email) + 'Invalid Email Address'
+        return jsonify(result)
+    if Tool.check_sex(sex) != True:
+        result['message'] = str(sex) + 'Invalid Sex'
         return jsonify(result)
     if Tool.check_age(age) != True:
         result['message'] = str(age) + 'Invalid Age'
         return jsonify(result)
-    if Tool.check_student_no(student_no) != True:
-        result['message'] = str(student_no) + 'Invalid Student ID'
+    if Tool.check_no(no) != True:
+        result['message'] = str(no) + 'Invalid ExperimentNo.'
         return jsonify(result)
-    if Tool.check_affiliation(affiliation) != True:
-        result['message'] = str(affiliation) + 'Invalid Affiliation'
+    if Tool.check_phone(phone) != True:
+        result['message'] = str(phone) + 'Invalid Phone Number'
         return jsonify(result)
 
     # get pack path
-    p_id, pack_path = PsyxDB.get_pack_path(gender=gender, age=age)
-    if p_id == 0 or pack_path == None:
+    p_id, pack_name = PsyxDB.get_pack_path(sex=sex, age=age)
+    if p_id == 0 or pack_name == None:
         result['message'] = 'None Suitable Pack'
     else:
         result['result'] = 'succeed'
         result['p_id'] = p_id
-        result['pack_path'] = pack_path
+        result['pack_path'] = os.path.join('/packs', pack_name) # TODO: use condif
+        pics = []
+        for i in os.listdir(os.path.join(Tool.PACK_BASE_PATH, pack_name)):
+            pics.append(i)
+        pics.sort()
+        pics_pairs = [pics[i:i+2] for i in range(0, len(pics), 2)]
+        random.shuffle(pics_pairs)
+        result['pic_pairs'] = pics_pairs
 
     return jsonify(result)
 
 
 @api.route('/reply/submit', methods=['POST']) # JSON
 def submit_reply():
-    print(' * ',sys._getframe().f_code.co_name)
+    print('\n * ',sys._getframe().f_code.co_name)
     data = request.get_json() # TODO: force=True?
-
+    print(data)
     p_id = data['p_id']
-    mail = data['mail']
-    student_no = data['student_no']
-    gender = data['gender']
+    name = data['name']
+    email = data['email']
+    no = data['no']
+    sex = data['sex']
     age = data['age']
-    affiliation = data['affiliation']
+    phone = data['phone']
     answers = data['answers']
 
     result = {
         'result' : 'failed'
     }
-    if PsyxDB.add_reply(p_id=p_id, mail=mail, student_no=student_no, gender=gender,
-                        age=age, affiliation=affiliation, answers=answers) == True:
+    if PsyxDB.add_reply(p_id=p_id, name=name, email=email, no=no, sex=sex,
+                        age=age, phone=phone, answers=answers) == True:
         result['result'] = 'succeed'
 
     return jsonify(result)
