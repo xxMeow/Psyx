@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="js/admin.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/psyx.css">
+        <title>Admin</title>
+    </head>
+    <body>
+        <div class="intro">
+            <h1>Admin</h1>
+        </div>
+
+        <h3>
+            <p>새 세트 추가</p>
+        </h3>
+
+        <div class="new_pack_form">
+            <form name="pack_info" id="pack_info" method="post" enctype=multipart/form-data>
+                <p><input type='file' name="file" id="pack_folder" webkitdirectory ></p>
+                <p><input type="text" name="pack_name" placeholder="folder name" class="smallbox left" required></p>
+                <p>
+                    <input type="number" name="age_lower" placeholder="min" class="smallbox center" min="0" max="120" required>
+                    ~
+                    <input type="number" name="age_upper" placeholder="max" class="smallbox center" min="0" max="120" required>
+                </p>
+                <p>
+                    <select name="sex" class="smallbox right" required>
+                        <option value="" disabled selected>성별</option>
+                        <option value="1">남성</option>
+                        <option value="2">여성</option>
+                    </select>
+                </p>
+                <p><input type="submit" class="submitbtn" value="세트 추가" /></p>
+            </form>
+        </div>
+
+        <hr />
+
+        <!-- <button id="show_packs" onclick="show_packs_func();">Look!</button> -->
+        <h3>
+            <p>기존 세트 관리</p>
+        </h3>
+        <table id="pack_info_list" width="70%">
+            <tr name="list_title">
+                <th>PackName</th>
+                <th>AgeMin</th>
+                <th>AgeMax</th>
+                <th>Sex</th>
+                <th>Count</th>
+                <th>Date</th>
+                <th>p_id</th>
+                <th>Download</th>
+                <th>Delete</th>
+            </tr>
+            <tr id="template">
+                <td id="pack_name"></td>
+                <td id="age_lower"></td>
+                <td id="age_upper"></td>
+                <td id="sex"></td>
+                <td id="count"></td>
+                <td id="date"></td>
+                <td id="p_id"></td>
+                <td id="download"><button id="download_btn">Download</button></td>
+                <td id="delete"><button id="delete_btn">Delete</button></td>
+            </tr>
+        </table>
+
+    </body>
+</html>
