@@ -7,9 +7,9 @@
   position: fixed;
   display: inline-block;
   left: 35%;
-  top: 26%;
+  top: 32.5%;
   width: 30%;
-  height: 48%;
+  height: 35%;
   background-color: whitesmoke;
   text-align: center;
   border-radius: 1%;
@@ -18,37 +18,27 @@
   padding: 2% 3%;
 }
 
-.inputalign {
+input[type=password] {
   width: 100%;
   padding: 2%;
   margin: 4% 0%;
   box-sizing: border-box;
 }
 
-.smallbox {
-  width: 32%;
+select {
+  width: 47%;
   padding: 2%;
+  margin: 4% 0%;
+  border-radius: 4px;
   box-sizing: border-box;
+}
+
+.alignleft {
   float: left;
 }
 
-.midbox{
-  width: 49%;
-  padding: 2%;
-  box-sizing: border-box;
-  float: left;
-}
-
-.left {
-  margin: 4% 1% 4% 0%;
-}
-
-.center {
-  margin: 4% 1%;
-}
-
-.right {
-  margin: 4% 0% 4% 1%;
+.alignright {
+  float: right;
 }
 
 .submitbtn {
@@ -69,8 +59,4 @@ footer{
   text-align: center;
   font-family: "Montserrat", Helvetica, sans-serif;
   color: dimgrey;
-}
-
-a {
-  color: whitesmoke;
 }

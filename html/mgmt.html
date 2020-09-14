@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Management</title>
+    <link href="css/mgmt.css" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+    </script>
+  </head>
+  <body>
+    <header>
+      <h2>Admin Management Panel</h2>
+    </header>
+    <div id="left">
+      <div id="" class="box">
+        <h3 id="title">고려대학교 컴퓨터학과 학부생</h3>
+        <div id="boxinfo">
+          <h5>나이 범위: 18세 ~ 25세</h5>
+          <h5>성별: 남성</h5>
+          <h5>응답 수: 20</h5>
+        </div>
+        <div id="buttons">
+          <button id="download_b" class="btn" onclick="download_data()">다운로드</button><br>
+          <button id="delete_b" class="btn" onclick="delete_folder()">삭제</button>
+        </div>
+      </div>
+      
+    </div>  
+    <div id="right">
+      <div id="addbox">
+        <h3>새로운 세트 추가</h3>
+        <form>
+          <label for="fname">폴더 이름: </label>
+          <input type="text" id="fname" name="fname" placeholder="폴더 이름" required><br>
+          <label for="minAge maxAge">나이 범위: </label>
+          <input type="number" id="minAge" name="minAge" min="0" placeholder="부터" required>
+          <input type="number" id="maxAge" name="maxAge" max="120" placeholder="까지" required><br>
+          <label for="fname">성별: </label>
+          <select id="sex" name="sex" required>
+            <option value="" disabled selected>성별</option>
+            <option value="1">남성</option>
+            <option value="2">여성</option>
+            <option value="">기타</option>
+          </select><br>
+          <input type="submit" class="submitbtn" value="+ 추가">
+        </form>
+      </div>
+    </div>
+    <footer> 
+      <h6 class = "hcenter">Copyrights (C) 2020 Korea University. All rights reserved.</h6>
+    </footer>
+    <script src="js/mgmt.js"></script>
+  </body>
+</html>
