@@ -427,22 +427,20 @@ $ sudo snap login xmx1025@gmail.com
     - Edit the config file to add following lines:
 
         ```bash
-        location /api {
-        	proxy_pass https://localhost:5000/;
-        	proxy_set_header Host $host;
-        	proxy_set_header X_Forwarded-For $proxy_add_x_forwarded_for;
-        	
-        	add_header Access-Control-Allow-Origin *;
-        	#add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
-        	add_header Access-Control-Allow-Methods 'GET, POST';
-        	add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
-        	
-        	#if ($request_method = 'OPTIONS') {
-            #    return 204;
-            #}
+        # forward to flask
+        location /api/ {
+        	client_max_body_size  64m; // 32m?
+        
+            proxy_pass https://localhost:5000/; # with slash, the location will be removed from url
+        #    proxy_set_header Host $host;
+        #    proxy_set_header X_Forwarded-For $proxy_add_x_forwarded_for;
+        
+            add_header Access-Control-Allow-Origin *;
+            add_header Access-Control-Allow-Methods 'GET, POST';
+            add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
         }
         ```
-
+        
     - Flask also needs to be configured
 
 ##### MySQL
