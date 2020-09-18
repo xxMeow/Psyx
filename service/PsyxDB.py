@@ -18,7 +18,7 @@ class Tool():
 
     @classmethod
     def check_email(cls, email):
-        print(' * ', sys._getframe().f_code.co_name, ': "', email, '"')
+        print('\t * ', sys._getframe().f_code.co_name, ': "', email, '"')
         if not isinstance(email, str):
             return False
         if len(email) >= cls.EMAIL_LEN_MAX:
@@ -29,7 +29,7 @@ class Tool():
 
     @classmethod
     def check_name(cls, name):
-        print(' * ', sys._getframe().f_code.co_name, ': "', name, '"')
+        print('\t * ', sys._getframe().f_code.co_name, ': "', name, '"')
         if not isinstance(name, str):
             return False
         if len(name) >= cls.NAME_LEN_MAX:
@@ -40,7 +40,7 @@ class Tool():
 
     @classmethod
     def check_phone(cls, phone):
-        print(' * ', sys._getframe().f_code.co_name, ': "', phone, '"')
+        print('\t * ', sys._getframe().f_code.co_name, ': "', phone, '"')
         if not isinstance(phone, str):
             return False
         if len(phone) != cls.PHONE_LEN:
@@ -51,9 +51,9 @@ class Tool():
 
     @classmethod
     def check_sex(cls, sex):
-        print(' * ', sys._getframe().f_code.co_name, ': "', sex, '"')
+        print('\t * ', sys._getframe().f_code.co_name, ': "', sex, '"')
         if not isinstance(sex, int):
-            print('\t\twrong type : sex=', sex, 'is', str(type(sex)))
+            print('\t - wrong type : sex=', sex, 'is', str(type(sex)))
             return False
         if sex != cls.SEX_F and sex != cls.SEX_M:
             return False
@@ -61,7 +61,7 @@ class Tool():
 
     @classmethod
     def check_age(cls, age):
-        print(' * ', sys._getframe().f_code.co_name, ': "', age, '"')
+        print('\t * ', sys._getframe().f_code.co_name, ': "', age, '"')
         if not isinstance(age, int):
             return False
         if age < cls.AGE_MIN or age > cls.AGE_MAX:
@@ -70,7 +70,7 @@ class Tool():
 
     @classmethod
     def check_no(cls, no):
-        print(' * ', sys._getframe().f_code.co_name, ': "', no, '"')
+        print('\t * ', sys._getframe().f_code.co_name, ': "', no, '"')
         if not isinstance(no, str):
             return False
         if len(no) >= cls.NO_LEN_MAX:
@@ -81,7 +81,7 @@ class Tool():
 
     @classmethod
     def check_pack_name(cls, pack_name):
-        print(' * ', sys._getframe().f_code.co_name, ': "', pack_name, '"')
+        print('\t * ', sys._getframe().f_code.co_name, ': "', pack_name, '"')
         if not isinstance(pack_name, str):
             return False
         if len(pack_name) >= cls.PACK_NAME_LEN_MAX:
@@ -89,16 +89,15 @@ class Tool():
         if re.match(r"^[A-Za-z0-9_]+$", pack_name) is None: # only allow numbers and characters
             return False
         return True
-
-    @classmethod
-    def check_file_type(cls, filename):
-        print(' * ', sys._getframe().f_code.co_name, ': "', filename, '"')
-        ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'} # TODO: more strict?
-        return ('.' in filename) and (filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS)
     
     @classmethod
     def check_file_name(cls, filename):
-        # TODO: to be completed
+        print('\t * ', sys._getframe().f_code.co_name, ': "', filename, '"')
+        if re.match(r"00[0-3][0-9]{2}_(ori|inv)\.(png|jpg|gif)$", filename) is None:
+            # TODO: only allow jpg?
+            # FIXME: actually match with 000~399, is it OK?
+            print(re.match(r"00[0-3][0-9]{2}_(ori|inv)\.(png|jpg|gif)$", filename))
+            return False
         return True
     
     @classmethod
@@ -108,7 +107,7 @@ class Tool():
 
 
 def _login_as_admin():
-    print(' * ',sys._getframe().f_code.co_name)
+    print('\t * ',sys._getframe().f_code.co_name)
     return pymysql.connect(host='localhost',
                            user='xmx1025',
                            password='lamj810327',
@@ -117,7 +116,7 @@ def _login_as_admin():
                            cursorclass=pymysql.cursors.DictCursor)
 
 def _login_as_visitor():
-    print(' * ',sys._getframe().f_code.co_name)
+    print('\t * ',sys._getframe().f_code.co_name)
     return pymysql.connect(host='localhost',
                            user='visitor',
                            password='12345678',
@@ -127,13 +126,13 @@ def _login_as_visitor():
 
 
 def get_all_packs():
-    print(' * ',sys._getframe().f_code.co_name)
+    print('\t * ',sys._getframe().f_code.co_name)
     sql = 'SELECT p.*, r.count '\
           'FROM pack p LEFT JOIN (SELECT p_id, COUNT(*) count FROM reply GROUP BY p_id) r '\
           'ON p.p_id=r.p_id'
     # SELECT p.*, r.count FROM pack p LEFT JOIN (SELECT p_id, COUNT(*) count FROM reply GROUP BY p_id) r ON p.p_id=r.p_id
 
-    result = []
+    result = ()
     db = _login_as_visitor()
     with db.cursor() as cursor:
         cursor.execute(sql)
@@ -144,31 +143,45 @@ def get_all_packs():
 
 
 def add_pack(sex, age_lower, age_upper, pack_name):
-    print(' * ', sys._getframe().f_code.co_name, ':', sex, age_lower, age_upper, pack_name)
-    sql = 'INSERT INTO pack VALUES (NULL, %s, %s, %s, %s, sysdate())'
-
+    print('\t * ', sys._getframe().f_code.co_name, ':', sex, age_lower, age_upper, pack_name)
+    # check if age or sex overlapped, return p_id=0
     p_id = 0
+    sql = 'SELECT * FROM pack WHERE sex=%s AND '\
+          '((age_lower <= %s AND age_upper >= %s) OR (age_lower <= %s AND age_upper >= %s) '\
+          'OR (age_lower <= %s AND age_upper >= %s) OR (age_lower >= %s AND age_upper <= %s))'
+    result = ()
+    db = _login_as_visitor()
+    with db.cursor() as cursor:
+        cursor.execute(sql, (sex, age_lower, age_lower, age_upper, age_upper, age_lower, age_upper, age_lower, age_upper))
+        result = cursor.fetchall()
+    db.close()
+    if len(result) > 0:
+        return p_id
+
+    # condition check passed
+    p_id = -1
+    sql = 'INSERT INTO pack VALUES (NULL, %s, %s, %s, %s, sysdate())'
     db = _login_as_admin()
     with db.cursor() as cursor:
         try:
             cursor.execute(sql, (sex, age_lower, age_upper, pack_name))
             db.commit()
             p_id = cursor.lastrowid
-            print('\t\tnew p_id :', str(p_id))
+            print('\t - new p_id :', str(p_id))
         except:
             db.rollback()
     db.close()
 
-    return p_id # TODO: if p_id == 0, delete all uploaded files
+    return p_id # if p_id <= 0, remeber to delete all the uploaded files
 
 def delete_pack(p_id):
-    print(' * ',sys._getframe().f_code.co_name, ':', p_id)
+    print('\t * ',sys._getframe().f_code.co_name, ':', p_id)
     # delete all replies of this pack
     sql1 = 'SELECT pack_name FROM pack WHERE p_id=%s'
     sql2 = 'DELETE FROM reply WHERE p_id=%s'
     sql3 = 'DELETE FROM pack WHERE p_id=%s'
 
-    result = None
+    result = ()
     db = _login_as_admin()
     with db.cursor() as cursor:
         if cursor.execute(sql1, (p_id)) > 0:
@@ -182,16 +195,29 @@ def delete_pack(p_id):
     db.close()
 
     pack_name = None
-    if result != None:
+    if len(result) > 0:
         print(result)
         pack_name = result[0]['pack_name']
     return pack_name # TODO: if pack_name == None, packbase damaged. -> delete the pack?
 
+def get_pack_info(p_id):
+    print('\t * ',sys._getframe().f_code.co_name, ':', p_id)
+    sql = 'SELECT * FROM pack WHERE p_id=%s'
+
+    result = ()
+    db = _login_as_visitor()
+    with db.cursor() as cursor:
+        cursor.execute(sql, (p_id))
+        result = cursor.fetchall()
+    db.close()
+
+    return result
+
 def get_all_replies(p_id):
-    print(' * ',sys._getframe().f_code.co_name, ':', p_id)
+    print('\t * ',sys._getframe().f_code.co_name, ':', p_id)
     sql = 'SELECT * FROM reply WHERE p_id=%s'
 
-    result = []
+    result = ()
     db = _login_as_visitor()
     with db.cursor() as cursor:
         cursor.execute(sql, (p_id))
@@ -201,10 +227,10 @@ def get_all_replies(p_id):
     return result
 
 def get_pack_path(sex, age):
-    print(' * ',sys._getframe().f_code.co_name, ':', sex, age)
-    sql = 'SELECT p_id, pack_name FROM pack WHERE sex=%s and age_lower<=%s AND age_upper>=%s'
+    print('\t * ',sys._getframe().f_code.co_name, ':', sex, age)
+    sql = 'SELECT p_id, pack_name FROM pack WHERE sex=%s AND age_lower<=%s AND age_upper>=%s'
 
-    result = []
+    result = ()
     db = _login_as_visitor()
     with db.cursor() as cursor:
         cursor.execute(sql, (sex, age, age))
@@ -213,24 +239,24 @@ def get_pack_path(sex, age):
 
     p_id = 0
     pack_name = None
-    if result != None and len(result) == 1:
+    if len(result) == 1:
         p_id = result[0]['p_id']
         pack_name = result[0]['pack_name']
     return (p_id, pack_name)
 
 def add_reply(p_id, name, email, no, sex, age, phone, answers):
-    print(' * ',sys._getframe().f_code.co_name, ':', p_id, name, email, no, sex, age, phone, '[answers]')
+    print('\t * ',sys._getframe().f_code.co_name, ':', p_id, name, email, no, sex, age, phone, '[answers]')
     result = False
 
-    print(' * Testing args..')
+    print('\t - testing args..')
     if (Tool.check_name(name) and Tool.check_email(email) and Tool.check_sex(sex) and Tool.check_age(age)
         and Tool.check_no(no) and Tool.check_phone(phone)):
-        print(' * Tested : len(answers) =', len(answers))
+        print('\t - Tested : len(answers) =', len(answers))
         # TODO: check age and sex with the pack's condition?
         # BUT: if p_id doesn't exist, the following insertion will abort anyway
         if len(answers) > 0: # == Tool.PACK_SIZE: # TODO: check the number of answers
             answers_str = json.dumps(answers)
-            print('\t', answers_str)
+            print('\t - answers:', answers_str)
 
             # TODO: is it ok to insert JSON data like this?
             sql = 'INSERT INTO reply VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, sysdate(), %s)'

@@ -14,28 +14,29 @@ api.debug = True
 # def login():
 #     return True
 
-# TODO: use this one to response error
 @api.errorhandler(418)
-def handle_client_error(msg):
+def client_error(msg):
+    print('\n * ',sys._getframe().f_code.co_name)
     result = '< CLIENT ERROR > %s' % msg
     print(result)
     return result, 418
 
 @api.errorhandler(500)
-def handle_server_error(msg):
+def server_error(msg):
+    print('\n * ',sys._getframe().f_code.co_name)
     result = '< SERVER ERROR > %s' % msg
     print(result)
     return result, 500
 
 
-@api.route('/admin/list', methods=['GET']) # FIXME: null to 0
+@api.route('/admin/list', methods=['GET'])
 def list_packs():
     print('\n * ',sys._getframe().f_code.co_name)
     result = PsyxDB.get_all_packs()
-    if (result == None):
-        abort(500, 'Failed To Read From DB')
-    for each in result:
-        if (each['count'] == None):
+    if len(result) == 0:
+        abort(418, 'Pack %s not Found')
+    for each in result: # the count will be null if that set hasn't received any replies
+        if each['count'] is None:
             each['count'] = 0
     print(result)
     return jsonify(result)
@@ -58,9 +59,6 @@ def create_pack():
     sex = int(request.form.get('sex', type=str))
     if Tool.check_sex(sex) == False:
         abort(418, 'Invalid Sex')
-    print('\t* sex:', sex)
-    print('\t* age:', age_lower, '~', age_upper)
-    print('\t* pack_name:', pack_name)
 
     # check if there's any folder with the same name
     UPLOAD_FOLDER = '/home/xmx1025/Psyx/packs' # TODO: use config
@@ -72,21 +70,18 @@ def create_pack():
     
     files = [] # [(f0, n0), (f1, n1), (f2, n2), ...], f for file, n for filename
     for f in request.files.getlist('file'):
-        if f.filename == '':
+        if not f or f.filename == '':
             # if user does not select file, browser also submit an empty part without filename
             abort(418, 'No Selected File')
-        if f and Tool.check_file_type(f.filename): # FIXME: why keep failed here?
-            n = secure_filename(Tool.absorb_filename(f.filename))
-            if Tool.check_file_name(n):
-                files.append((f, n))
-            else:
-                abort(418, 'Invalid File Or Invalid Filename: %s' % n)
+        n = secure_filename(Tool.absorb_filename(f.filename))
+        if Tool.check_file_name(n): # check for file's type and name format
+            files.append((f, n))
         else:
-            abort(418, 'Invalid File Type')
+            print(' - filtered file %s' % n)
 
     # make pack folder and save files
     if (len(files) == Tool.PACK_SIZE):
-        print('\t * making pack..')
+        print(' - making pack..')
         os.makedirs(dst_path)
         for f, n in files: # f for file, n for filename
             f.save(os.path.join(dst_path, n)) # TODO: if failed to save?
@@ -96,9 +91,12 @@ def create_pack():
     # add to db
     p_id = PsyxDB.add_pack(sex=sex, age_lower=age_lower, age_upper=age_upper, pack_name=pack_name)
     if p_id == 0:
-        # TODO: delete folder
-        abort(500, 'Failed To Add To DB')
-    return 'Pack ' + str(p_id) + ' Added.' # TODO: is this json?
+        shutil.rmtree(dst_path) # delete folder
+        abort(418, 'Pack Condition Overlapped')
+    if p_id == -1:
+        shutil.rmtree(dst_path) # delete folder
+        abort(500, 'Failed To Add To DB\n(check if there is a pack with the same name)')
+    return 'Pack ' + str(p_id) + ' Added.'
 
 
 @api.route('/admin/remove', methods=['GET']) # id
@@ -107,9 +105,9 @@ def remove_pack():
     # mv Pack Folder
     p_id = request.args.get('id', type=int)
     pack_name = PsyxDB.delete_pack(p_id)
-    if pack_name != None:
+    if pack_name is not None:
         pack_path = os.path.join(Tool.PACK_BASE_PATH, pack_name)
-        print('\tRemoving Pack', pack_path, '..')
+        print(' - removing pack', pack_path, '..')
         if os.path.exists(pack_path) and os.path.isdir(pack_path) == True:
             shutil.rmtree(pack_path)
         else:
@@ -117,24 +115,20 @@ def remove_pack():
     else:
         abort(418, 'Pack %s Not Found' % p_id)
 
-    return 'Pack ' + str(p_id) + ' Deleted.' # TODO: is this json?
+    return 'Pack ' + str(p_id) + ' Deleted.'
 
 
 @api.route('/admin/download', methods=['GET']) # id
 def download_pack():
     print('\n * ',sys._getframe().f_code.co_name)
     p_id = request.args.get('id', type=int)
-    # TODO: if unknown p_id??
+    pack_info = PsyxDB.get_pack_info(p_id)
+    if len(pack_info) == 0:
+        abort(418, 'Pack %s Not Found' % p_id)
+    result = pack_info[0] # dict
+    result['replies'] = ()
     replies = PsyxDB.get_all_replies(p_id) # a list of dictionaries (each dic is a record in db)
-    result = { # TODO: add pack info to result
-        'set' : 'example',
-        'age_lower' : 0,
-        'age_upper' : 120,
-        'sex' : 1,
-        'date' : '2020.09.18 20:36:47',
-        'replies' : []
-    }
-    if (replies != None):
+    if len(replies) > 0:
         result['replies'] = replies
     return jsonify(result)
 
@@ -150,8 +144,8 @@ def start_reply():
     sex = data['sex']
     age = data['age']
     phone = data['phone']
-    print('\t * Testing args..')
 
+    print(' - testing args..')
     # check inputs
     if Tool.check_name(name) != True:
         abort(418, 'Invalid Name: %s' % name)
@@ -166,9 +160,8 @@ def start_reply():
     if Tool.check_phone(phone) != True:
         abort(418, 'Invalid Phone Number: %s' % phone)
 
-    # get pack path # FIXME: check the return value
     p_id, pack_name = PsyxDB.get_pack_path(sex=sex, age=age)
-    if p_id == 0 or pack_name == None:
+    if p_id == 0 or pack_name is None:
         abort(418, 'None Suitable Pack') # TODO: not an error actually
     else:
         result = {}
