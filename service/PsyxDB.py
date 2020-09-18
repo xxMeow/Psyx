@@ -3,145 +3,108 @@ import sys, os, re, json # need shutil??
 
 class Tool():
     # Class Constants : please DONT'T change any of them!
-    PACK_SIZE = 10
-    AGE_MIN = 0
-    AGE_MAX = 120
-    SEX_F = 1
-    SEX_M = 2
-    EMAIL_LEN_MAX = 48
-    NAME_LEN_MAX = 64
-    PHONE_LEN = 13 # number + 2 (xxx-xxxx-xxxx)
-    NO_LEN_MAX = 16
-    PACK_NAME_LEN_MAX = 32
+    PACK_SIZE = 600 # == $
+    AGE_MIN = 0 # >= $
+    AGE_MAX = 120 # <= $
+    SEX_M = 1 # == $
+    SEX_F = 2 # == $
+    EMAIL_LEN_MAX = 48 # < $
+    NAME_LEN_MAX = 64 # < $
+    PHONE_LEN = 13 # == $ (xxx-xxxx-xxxx)
+    NO_LEN_MAX = 20 # only (alphabet, number)
+    PACK_NAME_LEN_MAX = 16 # only (alphabet, numer, underbar)
     PACK_BASE_PATH = os.path.join(os.environ['HOME'], 'Psyx', 'packs')
     UPLOAD_PATH = os.environ['HOME']
 
     @classmethod
     def check_email(cls, email):
-        print(' * ',sys._getframe().f_code.co_name)
+        print(' * ', sys._getframe().f_code.co_name, ': "', email, '"')
         if not isinstance(email, str):
             return False
-        email = email.strip() # remove the leading and tailing spaces
         if len(email) >= cls.EMAIL_LEN_MAX:
             return False
-        if re.match(r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$", email) is not None:
-            return True
-        return False
+        if re.match(r"^[A-Za-z0-9]+[A-Za-z0-9\.\+_-]*@[A-Za-z0-9\._-]+\.[a-zA-Z0-9]+$", email) is None:
+            return False
+        return True
 
     @classmethod
     def check_name(cls, name):
-        print(' * ',sys._getframe().f_code.co_name)
+        print(' * ', sys._getframe().f_code.co_name, ': "', name, '"')
         if not isinstance(name, str):
             return False
-        name = name.strip() # remove the leading and tailing spaces
         if len(name) >= cls.NAME_LEN_MAX:
             return False
-        if re.match(r"^[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]*$", name) is not None:
-            return True
-        return False
-
+        if re.match(r"^[가-힣]{2,}$", name) is None: # only korean characters without space, 2 characters at least
+            return False
+        return True
 
     @classmethod
     def check_phone(cls, phone):
-        print(' * ',sys._getframe().f_code.co_name)
+        print(' * ', sys._getframe().f_code.co_name, ': "', phone, '"')
         if not isinstance(phone, str):
             return False
-        phone = phone.strip() # remove the leading and tailing spaces
         if len(phone) != cls.PHONE_LEN:
             return False
-        if re.match(r"^\d{3}-\d{4}-\d{4}$", phone) is not None:
-            return True
-        return False
-
+        if re.match(r"^\d{3}-\d{4}-\d{4}$", phone) is None:
+            return False
+        return True
 
     @classmethod
     def check_sex(cls, sex):
-        print(' * ',sys._getframe().f_code.co_name)
+        print(' * ', sys._getframe().f_code.co_name, ': "', sex, '"')
         if not isinstance(sex, int):
-            print('\t\tsex=', sex, ' is', str(type(sex)))
+            print('\t\twrong type : sex=', sex, 'is', str(type(sex)))
             return False
-        if sex == cls.SEX_F or sex == cls.SEX_M:
-            return True
-        return False
+        if sex != cls.SEX_F and sex != cls.SEX_M:
+            return False
+        return True
 
     @classmethod
     def check_age(cls, age):
-        print(' * ',sys._getframe().f_code.co_name)
+        print(' * ', sys._getframe().f_code.co_name, ': "', age, '"')
         if not isinstance(age, int):
             return False
-        if age >= cls.AGE_MIN and age <= cls.AGE_MAX:
-            return True
-        return False
+        if age < cls.AGE_MIN or age > cls.AGE_MAX:
+            return False
+        return True
 
     @classmethod
     def check_no(cls, no):
-        print(' * ',sys._getframe().f_code.co_name)
+        print(' * ', sys._getframe().f_code.co_name, ': "', no, '"')
         if not isinstance(no, str):
             return False
-        no = no.strip() # remove the leading and tailing spaces
         if len(no) >= cls.NO_LEN_MAX:
             return False
-        if re.match(r"^[A-Za-z0-9]*$", no) is not None: # only allow numbers and characters
-            return True
-        return False
-
+        if re.match(r"^[A-Za-z0-9]+$", no) is None: # only allow numbers and characters
+            return False
+        return True
 
     @classmethod
-    def _check_pack_name(cls, pack_name):
-        print(' * ',sys._getframe().f_code.co_name)
+    def check_pack_name(cls, pack_name):
+        print(' * ', sys._getframe().f_code.co_name, ': "', pack_name, '"')
         if not isinstance(pack_name, str):
             return False
-        pack_name = pack_name.strip() # remove the leading and tailing spaces
         if len(pack_name) >= cls.PACK_NAME_LEN_MAX:
             return False
-        if re.match(r"^[A-Za-z0-9]*$", pack_name) is not None: # only allow numbers and characters
-            return True
-        return False
+        if re.match(r"^[A-Za-z0-9_]+$", pack_name) is None: # only allow numbers and characters
+            return False
+        return True
 
-    # @classmethod
-    # def move_pack_in(cls, pack_name): # used when adding a new pack
-    #     print(' * ',sys._getframe().f_code.co_name)
-    #     if cls._check_pack_name(pack_name) != True:
-    #         return False
+    @classmethod
+    def check_file_type(cls, filename):
+        print(' * ', sys._getframe().f_code.co_name, ': "', filename, '"')
+        ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'} # TODO: more strict?
+        return ('.' in filename) and (filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS)
+    
+    @classmethod
+    def check_file_name(cls, filename):
+        # TODO: to be completed
+        return True
+    
+    @classmethod
+    def absorb_filename(cls, filename):
+        return filename.split(os.sep)[-1]
 
-    #     src_path = os.path.join(cls.UPLOAD_PATH, pack_name)
-    #     dst_path = os.path.join(cls.PACK_BASE_PATH, pack_name)
-    #     print('\tMove Pack From:')
-    #     print('\t\t' + src_path + ' ->')
-    #     print('\t\t' + dst_path)
-    #     if not os.path.exists(src_path) or os.path.isdir(src_path) == False:
-    #         return False
-    #     if os.path.exists(dst_path):
-    #         return False
-
-    #     # check the uploaded folder
-    #     pic_count = 0
-    #     for i in os.listdir(src_path):
-    #         if os.path.isdir(i) == True:
-    #             return False
-    #         else:
-    #             pic_count += 1
-    #     print('\t\tpic_count :', str(pic_count))
-    #     if pic_count == cls.PACK_SIZE:
-    #         # TODO: file names check?
-    #         shutil.copytree(src_path, dst_path)
-    #         shutil.rmtree(src_path)
-    #         return True
-
-    #     shutil.rmtree(src_path)
-    #     return False
-
-    # @classmethod
-    # def move_pack_out(cls, pack_name): # used when removing a pack
-    #     print(' * ',sys._getframe().f_code.co_name)
-        
-    #     pack_path = os.path.join(cls.PACK_BASE_PATH, pack_name)
-    #     print('\tRemove Pack')
-    #     print('\t\t' + pack_path)
-    #     if os.path.exists(pack_path) and os.path.isdir(pack_path) == True:
-    #         shutil.rmtree(pack_path)
-    #         return True
-    #     return False
 
 
 def _login_as_admin():
@@ -181,7 +144,7 @@ def get_all_packs():
 
 
 def add_pack(sex, age_lower, age_upper, pack_name):
-    print(' * ', sys._getframe().f_code.co_name)
+    print(' * ', sys._getframe().f_code.co_name, ':', sex, age_lower, age_upper, pack_name)
     sql = 'INSERT INTO pack VALUES (NULL, %s, %s, %s, %s, sysdate())'
 
     p_id = 0
@@ -196,10 +159,10 @@ def add_pack(sex, age_lower, age_upper, pack_name):
             db.rollback()
     db.close()
 
-    return p_id
+    return p_id # TODO: if p_id == 0, delete all uploaded files
 
 def delete_pack(p_id):
-    print(' * ',sys._getframe().f_code.co_name)
+    print(' * ',sys._getframe().f_code.co_name, ':', p_id)
     # delete all replies of this pack
     sql1 = 'SELECT pack_name FROM pack WHERE p_id=%s'
     sql2 = 'DELETE FROM reply WHERE p_id=%s'
@@ -222,10 +185,10 @@ def delete_pack(p_id):
     if result != None:
         print(result)
         pack_name = result[0]['pack_name']
-    return pack_name
+    return pack_name # TODO: if pack_name == None, packbase damaged. -> delete the pack?
 
 def get_all_replies(p_id):
-    print(' * ',sys._getframe().f_code.co_name)
+    print(' * ',sys._getframe().f_code.co_name, ':', p_id)
     sql = 'SELECT * FROM reply WHERE p_id=%s'
 
     result = []
@@ -238,7 +201,7 @@ def get_all_replies(p_id):
     return result
 
 def get_pack_path(sex, age):
-    print(' * ',sys._getframe().f_code.co_name)
+    print(' * ',sys._getframe().f_code.co_name, ':', sex, age)
     sql = 'SELECT p_id, pack_name FROM pack WHERE sex=%s and age_lower<=%s AND age_upper>=%s'
 
     result = []
@@ -256,18 +219,12 @@ def get_pack_path(sex, age):
     return (p_id, pack_name)
 
 def add_reply(p_id, name, email, no, sex, age, phone, answers):
-    print(' * ',sys._getframe().f_code.co_name)
+    print(' * ',sys._getframe().f_code.co_name, ':', p_id, name, email, no, sex, age, phone, '[answers]')
     result = False
 
     print(' * Testing args..')
-    print('\t', name)
-    print('\t', email)
-    print('\t', sex)
-    print('\t', age)
-    print('\t', no)
-    print('\t', phone)
     if (Tool.check_name(name) and Tool.check_email(email) and Tool.check_sex(sex) and Tool.check_age(age)
-        and Tool.check_no(no) and Tool.check_phone(phone)) == True:
+        and Tool.check_no(no) and Tool.check_phone(phone)):
         print(' * Tested : len(answers) =', len(answers))
         # TODO: check age and sex with the pack's condition?
         # BUT: if p_id doesn't exist, the following insertion will abort anyway

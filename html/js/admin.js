@@ -1,10 +1,11 @@
 $(document).ready(function() {
     function refresh_list() { // get the lastest pasks info
-        $.ajax({
-            type: "get",
-            dataType: "json",
+        $.ajax({ // success, error
             url: "https://ohfish.me/api/admin/list",
-            success: function(data){
+            method: "GET", // use method instead of type
+            dataType: "json",
+            success: function(data) { // rerender the pack list, do not alert anything
+                console.log("list success");
                 console.log(data);
 
                 // clear old rows
@@ -14,16 +15,16 @@ $(document).ready(function() {
 
                 // generate new rows from received data
                 var tb = $("#pack_list").find("tbody")[0];
-                if (data["pack_num"] > 0) {
+                if (data.length > 0) {
                     var tplt = document.querySelector("#row_tplt");
                     var tds = tplt.content.querySelectorAll("td");
-                    $.each(data["pack_list"], function(index, value){
+                    $.each(data, function(index, value) {
                         // make content for template
                         tds[0].textContent = value.pack_name;
                         if (value.sex == "1") {
-                            tds[1].textContent = "남";
+                            tds[1].textContent = "남성";
                         } else if (value.sex == "2") {
-                            tds[1].textContent = "여";
+                            tds[1].textContent = "여성";
                         } else {
                             console.log("Unknown Sex.");
                         }
@@ -44,7 +45,12 @@ $(document).ready(function() {
                 }
 
                 // set the total number of packs
-                $("#pack_list").find("tfoot").find("td").text(data["pack_num"]);
+                $("#pack_list").find("tfoot").find("td").text(data.length);
+            },
+            error: function(xhr, status, error) { // alert error message
+                console.log("list error");
+                console.log(xhr);
+                alert(xhr.responseText);
             }
         });
     }
@@ -81,17 +87,25 @@ $(document).ready(function() {
         $.ajax({
             url: "https://ohfish.me/api/admin/create",
             method: "POST",
+            dataType: 'text',
             data: fd,
             contentType: false,
             processData: false,
             cache: false,
-            success: function(data) {
+            success: function(msg) {
+                console.log("create success");
+                console.log(msg);
                 $('#new_pack_form')[0].reset(); // clear the form
+                alert(msg);
             },
-            complete: function(request, data) {
+            error: function(xhr, status, error) {
+                console.log("create error");
+                console.log(xhr);
+                alert(xhr.responseText);
+            },
+            complete: function(request, msg) {
+                console.log("create complete");
                 $(".loader").css("visibility", "hidden"); // end loading
-                console.log(data);
-                alert(data);
                 refresh_list();
             }
         });
@@ -104,12 +118,18 @@ $(document).ready(function() {
         console.log("Downloading Pack" + p_id + "..");
 
         $.ajax({
-            type: "get",
+            url: "https://ohfish.me/api/admin/download?id=" + p_id,
+            method: "GET",
             dataType: "json",
-            url: "https://ohfish.me/api/admin/report?id=" + p_id,
-            success: function(data){
+            success: function(data) {
+                console.log("download succeed");
                 console.log(data);
                 download(data, p_id);
+            },
+            error: function(xhr, status, error) {
+                console.log("download error");
+                console.log(xhr);
+                alert(xhr.responseText);
             }
         });
     });
@@ -119,19 +139,27 @@ $(document).ready(function() {
         var p_id = $(this).parent().prev().text();
         console.log("Deleting Pack" + p_id + "..");
 
-        var msg = "세트 삭제 후 북구할 수 없으며 해당 세트의 모든 응답도 삭제됩니다.\n정말 삭제하시겠습니까?";
-        if (confirm(msg) != true) {
+        if (confirm("세트 삭제 후 북구할 수 없으며 해당 세트의 모든 응답도 삭제됩니다.\n정말 삭제하시겠습니까?") != true) {
             return false;
         }
 
         $.ajax({
-            type: "get",
-            dataType: "json",
             url: "https://ohfish.me/api/admin/remove?id=" + p_id,
-            success: function(data){
-                console.log(data);
+            method: "GET",
+            dataType: "text",
+            success: function(msg) {
+                console.log("remove succeed");
+                console.log(msg);
                 refresh_list();
-                alert("Pack " + p_id + " Deleted!");
+                alert(msg);
+            },
+            error: function(xhr, status, error) {
+                console.log("remove error");
+                console.log(xhr);
+                alert(xhr.responseText);
+            },
+            complete: function(request, msg) {
+                console.log("remove completed");
             }
         });
     });
