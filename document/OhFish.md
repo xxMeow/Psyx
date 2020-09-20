@@ -186,20 +186,53 @@ $ sudo snap login xmx1025@gmail.com
 
 ##### Global Tools
 
-> Before install anything, update the `apt` first
+> Before install anything, **log in as root** and update the `apt` first
 >
 > ```bash
-> $ sudo apt update
+> $ apt update
 > ```
 >
 > Before install any tools with apt, check its dependencies with:
 >
-> ```
+> ```bash
 > $ apt depends [package name]
 > ```
 
 - tree
+
 - net-tools (including `netstat`)
+
+- apache2-utils
+
+    - ```bash
+        apt install apache2-utils
+        ```
+
+    - Options
+
+        ```bash
+        -c 创建passwdfile.如果passwdfile 已经存在,那么它会重新写入并删去原有内容.
+        -n 不更新passwordfile，直接显示密码
+        -m 使用MD5加密（默认）
+        -d 使用CRYPT加密（默认）
+        -p 使用普通文本格式的密码
+        -s 使用SHA加密
+        -b 命令行中一并输入用户名和密码而不是根据提示输入密码，可以看见明文，不需要交互
+        -D 删除指定的用户
+        ```
+
+    - Create user (⚠️ Use `-c` ONLY for the first time. Directory `.htpasswd` will be created)
+
+        ```bash
+        $ htpasswd -c /home/xmx1025/.htpasswd admin # putting this file under /root may cause a permission issue
+        ```
+
+    - Add following lines to the /admin block of Nignx configuration file:
+
+        ```bash
+        auth_basic "Password Required"; # Prompt
+        auth_basic_user_file /home/xmx1025/.htpasswd;
+        ```
 
 ##### Miniconda3
 
@@ -624,3 +657,4 @@ drwxr-xr-x  2 root root  4096 Sep  3 17:00 .ssl
 drwxr-xr-x  3 root root  4096 Aug 30 08:55 snap
 ```
 
+x

@@ -2,127 +2,166 @@ from flask import Flask, Response, request, jsonify, abort
 from flask_cors import CORS
 import PsyxDB
 from PsyxDB import Tool
-import sys, os, shutil, random, json
+import os, shutil, random, json, re
 from werkzeug.utils import secure_filename
+from enum import Enum, unique
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
+"""
+TODO:
+ - use config
+ - clear comments
+ - check import
+ - disable CORS and DEBUG (but open CORS for download api?)
+ - custom error description using Response?
+ - use another prefix for log files
+ - add comments for every re patterns
+"""
+
 
 api = Flask(__name__)
 CORS(api)
 api.debug = True
 
 
-# @api.route('/admin/login', method=['POST'])
-# def login():
-#     return True
+# set logger
+log_name = 'api'
+log_format = '[%(asctime)s * %(levelname)s]\t%(lineno)d \t%(funcName)s: %(message)s'
+logger = logging.getLogger(log_name)
+log_path = os.path.join(Tool.LOG_PATH, log_name)
+logger.setLevel(logging.INFO) # DEBUG < INFO < WARNING < ERROR < CRITICAL
+# make one 1 log file every midnight, keep for 14 days
+file_handler = TimedRotatingFileHandler(filename=log_path, when="MIDNIGHT", interval=1, backupCount=14)
+file_handler.suffix = "%Y%m%d.log"
+file_handler.extMatch = re.compile(r'^\d{8}.log$')
+file_handler.setFormatter(logging.Formatter(log_format))
+logger.addHandler(file_handler)
 
-@api.errorhandler(418)
-def client_error(msg):
-    print('\n * ',sys._getframe().f_code.co_name)
-    result = '< CLIENT ERROR > %s' % msg
-    print(result)
-    return result, 418
 
-@api.errorhandler(500)
-def server_error(msg):
-    print('\n * ',sys._getframe().f_code.co_name)
+@unique
+class STATUS(Enum):
+    NO_SUITABLE_PACK = 404 # STATUS.NO_SUITABLE_PACK.value
+    INVALID_INPUT = 400 # STATUS.INVALID_INPUT.value
+    SERVER_ERROR = 500 # STATUS.SERVER_ERROR.value
+
+# TODO: handle NO_SUITABLE PACK?
+
+@api.errorhandler(STATUS.INVALID_INPUT.value)
+def handle_invalid_input(msg):
+    logger.warning(request.headers['X-Real-IP'])
+    logger.warning(' - %s' % msg)
+    return msg, STATUS.INVALID_INPUT.value
+
+@api.errorhandler(STATUS.SERVER_ERROR.value)
+def handle_server_error(msg):
+    logger.error(request.headers['X-Real-IP'])
+    logger.error(' - %s' % msg)
     result = '< SERVER ERROR > %s' % msg
-    print(result)
-    return result, 500
+    return result, STATUS.SERVER_ERROR.value
 
 
 @api.route('/admin/list', methods=['GET'])
 def list_packs():
-    print('\n * ',sys._getframe().f_code.co_name)
+    logger.info(request.headers['X-Real-IP'])
     result = PsyxDB.get_all_packs()
     for each in result: # the count will be null if that set hasn't received any replies
         if each['count'] is None:
             each['count'] = 0
-    print(result)
     return jsonify(result)
 
 
 @api.route('/admin/create', methods=['POST']) # FORM
 def create_pack():
-    print('\n * ',sys._getframe().f_code.co_name)
+    logger.info(request.headers['X-Real-IP'])
     # check if the post request has the file part
     if 'file' not in request.files:
-        abort(418, 'Nothing Uploaded')
+        abort(STATUS.INVALID_INPUT.value, 'Nothing Uploaded')
     # get other args
     pack_name = request.form.get('pack_name', type=str)
     if not Tool.check_pack_name(pack_name):
-        abort(418, 'Invalid Pack Name')
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Pack Name')
     age_lower = request.form.get('age_lower', type=int)
     age_upper = request.form.get('age_upper', type=int)
     if not Tool.check_age(age_lower) or not Tool.check_age(age_upper) or age_lower > age_upper:
-        abort(418, 'Invalid Age Bound')
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Age Bound')
     sex = int(request.form.get('sex', type=str))
     if Tool.check_sex(sex) == False:
-        abort(418, 'Invalid Sex')
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Sex')
 
     # check if there's any folder with the same name
-    UPLOAD_FOLDER = '/home/xmx1025/Psyx/packs' # TODO: use config
+    UPLOAD_FOLDER = '/home/xmx1025/Psyx/packs'
     dst_path = os.path.join(UPLOAD_FOLDER, pack_name)
     if not os.path.exists(UPLOAD_FOLDER):
-        abort(500, 'Packbase Damaged!')
+        abort(STATUS.SERVER_ERROR.value, 'Packbase Damaged!')
     if os.path.exists(dst_path):
-        abort(418, 'Pack Existed')
+        abort(STATUS.INVALID_INPUT.value, 'Pack Existed')
     
     files = [] # [(f0, n0), (f1, n1), (f2, n2), ...], f for file, n for filename
     for f in request.files.getlist('file'):
         if not f or f.filename == '':
             # if user does not select file, browser also submit an empty part without filename
-            abort(418, 'No Selected File')
+            abort(STATUS.INVALID_INPUT.value, 'No Selected File')
         n = secure_filename(Tool.absorb_filename(f.filename))
-        if Tool.check_file_name(n): # check for file's type and name format
+        if Tool.check_file_name(n): # check for both file's type and name format
             files.append((f, n))
         else:
-            print(' - filtered file %s' % n)
+            logger.info(' - filtered file %s' % n)
 
     # make pack folder and save files
     if (len(files) == Tool.PACK_SIZE):
-        print(' - making pack..')
-        os.makedirs(dst_path)
-        for f, n in files: # f for file, n for filename
-            f.save(os.path.join(dst_path, n)) # TODO: if failed to save?
+        logger.info(' - making pack %s..' % dst_path)
+        try:
+            os.makedirs(dst_path)
+            for f, n in files: # f for file, n for filename
+                try:
+                    f.save(os.path.join(dst_path, n))
+                except:
+                    shutil.rmtree(dst_path)
+                    abort(STATUS.SERVER_ERROR.value, 'Server Failed to Save Files')
+        except:
+            abort(STATUS.SERVER_ERROR.value, 'Server Failed to Make Folder')
     else:
-        abort(418, 'Invalid Folder Size')
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Folder Size')
 
     # add to db
     p_id = PsyxDB.add_pack(sex=sex, age_lower=age_lower, age_upper=age_upper, pack_name=pack_name)
     if p_id == 0:
         shutil.rmtree(dst_path) # delete folder
-        abort(418, 'Pack Condition Overlapped')
+        abort(STATUS.INVALID_INPUT.value, 'Pack Condition Overlapped')
     if p_id == -1:
         shutil.rmtree(dst_path) # delete folder
-        abort(500, 'Failed To Add To DB\n(check if there is a pack with the same name)')
+        abort(STATUS.SERVER_ERROR.value, 'Failed To Add To DB\n(check if there is a pack with the same name)')
     return 'Pack ' + str(p_id) + ' Added.'
 
 
 @api.route('/admin/remove', methods=['GET']) # id
 def remove_pack():
-    print('\n * ',sys._getframe().f_code.co_name)
+    logger.info(request.headers['X-Real-IP'])
     # mv Pack Folder
     p_id = request.args.get('id', type=int)
     pack_name = PsyxDB.delete_pack(p_id)
     if pack_name is not None:
         pack_path = os.path.join(Tool.PACK_BASE_PATH, pack_name)
-        print(' - removing pack', pack_path, '..')
-        if os.path.exists(pack_path) and os.path.isdir(pack_path) == True:
+        logger.info(' - removing pack %s..' % pack_path)
+        try:
             shutil.rmtree(pack_path)
-        else:
-            abort(500, 'Packbase Damaged!')
+        except:
+            abort(STATUS.SERVER_ERROR.value, 'Packbase Damaged!')
     else:
-        abort(418, 'Pack %s Not Found' % p_id)
+        abort(STATUS.INVALID_INPUT.value, 'Unknown Pack %s' % p_id)
 
     return 'Pack ' + str(p_id) + ' Deleted.'
 
 
+# TODO: @cross_origin()
 @api.route('/admin/download', methods=['GET']) # id
 def download_pack():
-    print('\n * ',sys._getframe().f_code.co_name)
+    logger.info(request.headers['X-Real-IP'])
     p_id = request.args.get('id', type=int)
     pack_info = PsyxDB.get_pack_info(p_id)
     if len(pack_info) == 0:
-        abort(418, 'Pack %s Not Found' % p_id)
+        abort(STATUS.INVALID_INPUT.value, 'Pack %s Not Found' % p_id)
     result = pack_info[0] # dict
     replies = PsyxDB.get_all_replies(p_id) # a list of dictionaries (each dic is a record in db)
     for r in replies:
@@ -133,9 +172,9 @@ def download_pack():
 
 @api.route('/reply/start', methods=['POST']) # FORM
 def start_reply():
-    print('\n * ',sys._getframe().f_code.co_name)
+    logger.info(request.headers['X-Real-IP'])
     data = request.get_json()
-    print(data)
+    logger.debug(data)
     name = data['name']
     email = data['email']
     no = data['no']
@@ -143,28 +182,27 @@ def start_reply():
     age = data['age']
     phone = data['phone']
 
-    print(' - testing args..')
     # check inputs
     if Tool.check_name(name) != True:
-        abort(418, 'Invalid Name: %s' % name)
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Name: %s' % name)
     if Tool.check_email(email) != True:
-        abort(418, 'Invalid Email Address: %s' % email)
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Email Address: %s' % email)
     if Tool.check_sex(sex) != True:
-        abort(418, 'Invalid Sex: %s' % sex)
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Sex: %s' % sex)
     if Tool.check_age(age) != True:
-        abort(418, 'Invalid Age: %s' % age)
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Age: %s' % age)
     if Tool.check_no(no) != True:
-        abort(418, 'Invalid ExperimentNo.: %s' % no)
+        abort(STATUS.INVALID_INPUT.value, 'Invalid ExperimentNo.: %s' % no)
     if Tool.check_phone(phone) != True:
-        abort(418, 'Invalid Phone Number: %s' % phone)
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Phone Number: %s' % phone)
 
     p_id, pack_name = PsyxDB.get_pack_path(sex=sex, age=age)
     if p_id == 0 or pack_name is None:
-        abort(418, 'None Suitable Pack') # TODO: not an error actually
+        abort(STATUS.NO_SUITABLE_PACK.value, 'No Suitable Pack for You')
     else:
         result = {}
         result['p_id'] = p_id
-        result['pack_path'] = os.path.join('/packs', pack_name) # TODO: use config
+        result['pack_path'] = os.path.join('/packs', pack_name)
         pics = []
         for i in os.listdir(os.path.join(Tool.PACK_BASE_PATH, pack_name)):
             pics.append(i)
@@ -178,9 +216,9 @@ def start_reply():
 
 @api.route('/reply/submit', methods=['POST']) # JSON
 def submit_reply():
-    print('\n * ',sys._getframe().f_code.co_name)
-    data = request.get_json() # TODO: force=True?
-    print(data)
+    logger.info(request.headers['X-Real-IP'])
+    data = request.get_json()
+    logger.debug(data)
     p_id = data['p_id']
     name = data['name']
     email = data['email']
@@ -190,8 +228,11 @@ def submit_reply():
     phone = data['phone']
     answers = data['answers']
 
-    if PsyxDB.add_reply(p_id=p_id, name=name, email=email, no=no, sex=sex,
-                        age=age, phone=phone, answers=answers) != True:
-        abort(418, 'Failed To Submit Your Reply')
+    result = PsyxDB.add_reply(p_id=p_id, name=name, email=email, no=no, sex=sex, age=age, phone=phone, answers=answers)
+    
+    if result == -1:
+        abort(STATUS.INVALID_INPUT.value, 'Invalid Input. Failed To Submit Your Reply')
+    if result == -2:
+        abort(STATUS.SERVER_ERROR.value, 'Server Error. Failed To Submit Your Reply')
 
     return 'Reply Submited.'
