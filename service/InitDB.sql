@@ -29,7 +29,7 @@ CREATE TABLE `reply` (
     `age` TINYINT NOT NULL,
     `phone` CHAR(48) NOT NULL,
     `date` DATETIME NOT NULL,
-    `answer` JSON NOT NULL,
+    `answers` JSON NOT NULL,
     PRIMARY KEY (`r_id`),
     FOREIGN KEY (`p_id`) REFERENCES `pack`(`p_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

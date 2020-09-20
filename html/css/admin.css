@@ -4,8 +4,7 @@
     --text-color: #ffffff;
     --text-color-grey: #a9a9a9;
     --form-color: #dfbe3a;
-    --list-color2: #3b5bcb;
-    --list-color1: #7154da;
+    --list-color: #7154da;
     --warning-color: #a22525;
 }
 
@@ -32,7 +31,7 @@ h2 {
     color: var(--form-color);
 }
 .list h2 {
-    color: var(--list-color1);
+    color: var(--list-color);
 }
 
 *:focus {
@@ -124,7 +123,7 @@ table {
     border-collapse: collapse;
 }
 thead {
-    border-bottom: 1px solid var(--list-color1);
+    border-bottom: 1px solid var(--list-color);
 }
 tbody {
     color: var(--text-color-grey);
@@ -134,8 +133,8 @@ tbody tr:hover td {
     background-color: var(--bg-hl-color);
 }
 tfoot {
-    border-top: 1px solid var(--list-color1);
-    color: var(--list-color1);
+    border-top: 1px solid var(--list-color);
+    color: var(--list-color);
 }
 th { padding: 2%; }
 td { padding: 1%; }
@@ -156,14 +155,14 @@ thead th:nth-child(8) { width: 10%; } /* Save */
     background: transparent;
 }
 .download_btn {
-    fill: var(--list-color1);
+    fill: var(--list-color);
 }
 .delete_btn {
     fill: var(--warning-color);
 }
 .download_btn:hover {
     fill: var(--text-color);
-    background: var(--list-color1);
+    background: var(--list-color);
 }
 .delete_btn:hover {
     fill: var(--text-color);

@@ -33,8 +33,6 @@ def server_error(msg):
 def list_packs():
     print('\n * ',sys._getframe().f_code.co_name)
     result = PsyxDB.get_all_packs()
-    if len(result) == 0:
-        abort(418, 'Pack %s not Found')
     for each in result: # the count will be null if that set hasn't received any replies
         if each['count'] is None:
             each['count'] = 0
@@ -126,10 +124,10 @@ def download_pack():
     if len(pack_info) == 0:
         abort(418, 'Pack %s Not Found' % p_id)
     result = pack_info[0] # dict
-    result['replies'] = ()
     replies = PsyxDB.get_all_replies(p_id) # a list of dictionaries (each dic is a record in db)
-    if len(replies) > 0:
-        result['replies'] = replies
+    for r in replies:
+        r['answers'] = json.loads(r['answers']) # the answers data in db is jsonstring
+    result['replies'] = replies
     return jsonify(result)
 
 
