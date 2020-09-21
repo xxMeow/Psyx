@@ -1,9 +1,15 @@
 import pymysql
 import os, re, json
+import configparser
+
+# set config
+config = configparser.ConfigParser()
+config.read('../config/psyx.ini')
+
 
 class Tool():
     # Class Constants : please DONT'T change any of them!
-    PACK_SIZE = 600 # == $
+    PACK_SIZE = 300 # == $
     AGE_MIN = 0 # >= $
     AGE_MAX = 120 # <= $
     SEX_M = 1 # == $
@@ -13,8 +19,10 @@ class Tool():
     PHONE_LEN = 13 # == $
     NO_LEN_MAX = 20 # < $
     PACK_NAME_LEN_MAX = 16 # < $
-    PACK_BASE_PATH = os.path.join(os.environ['HOME'], 'Psyx', 'packs')
-    LOG_PATH = os.path.join(os.environ['HOME'], 'Psyx', 'logs')
+    PROJ_PATH = os.path.join(os.environ['HOME'], config['directory']['proj_dir'])
+    PACKBASE_PATH = os.path.join(PROJ_PATH, config['directory']['packbase_dir'])
+    LOGBASE_PATH = os.path.join(PROJ_PATH, config['directory']['logbase_dir'])
+    PACKBASE_LOC = config['location']['packbase_loc']
 
     @classmethod
     def check_email(cls, email):
@@ -99,20 +107,19 @@ class Tool():
         return filepath.split(os.sep)[-1]
 
 
-
 def _login_as_admin():
     return pymysql.connect(host='localhost',
-                           user='xmx1025',
-                           password='lamj810327',
-                           db='psyx',
+                           user=config['database']['admin_name'],
+                           password=config['database']['admin_pw'],
+                           db=config['database']['db_name'],
                            charset='utf8',
                            cursorclass=pymysql.cursors.DictCursor)
 
 def _login_as_visitor():
     return pymysql.connect(host='localhost',
-                           user='visitor',
-                           password='12345678',
-                           db='psyx',
+                           user=config['database']['visitor_name'],
+                           password=config['database']['visitor_pw'],
+                           db=config['database']['db_name'],
                            charset='utf8',
                            cursorclass=pymysql.cursors.DictCursor)
 
@@ -132,16 +139,15 @@ def get_all_packs():
 
     return result
 
-
-def add_pack(sex, age_lower, age_upper, pack_name):
+def add_pack(sex, age_min, age_max, pack_name):
     p_id = 0
     sql = 'SELECT * FROM pack WHERE sex=%s AND '\
-          '((age_lower <= %s AND age_upper >= %s) OR (age_lower <= %s AND age_upper >= %s) '\
-          'OR (age_lower <= %s AND age_upper >= %s) OR (age_lower >= %s AND age_upper <= %s))'
+          '((age_min <= %s AND age_max >= %s) OR (age_min <= %s AND age_max >= %s) '\
+          'OR (age_min <= %s AND age_max >= %s) OR (age_min >= %s AND age_max <= %s))'
     result = ()
     db = _login_as_visitor()
     with db.cursor() as cursor:
-        cursor.execute(sql, (sex, age_lower, age_lower, age_upper, age_upper, age_lower, age_upper, age_lower, age_upper))
+        cursor.execute(sql, (sex, age_min, age_min, age_max, age_max, age_min, age_max, age_min, age_max))
         result = cursor.fetchall()
     db.close()
     if len(result) > 0:
@@ -152,7 +158,7 @@ def add_pack(sex, age_lower, age_upper, pack_name):
     db = _login_as_admin()
     with db.cursor() as cursor:
         try:
-            cursor.execute(sql, (sex, age_lower, age_upper, pack_name))
+            cursor.execute(sql, (sex, age_min, age_max, pack_name))
             db.commit()
             p_id = cursor.lastrowid
         except:
@@ -210,7 +216,7 @@ def get_all_replies(p_id):
     return result
 
 def get_pack_path(sex, age):
-    sql = 'SELECT p_id, pack_name FROM pack WHERE sex=%s AND age_lower<=%s AND age_upper>=%s'
+    sql = 'SELECT p_id, pack_name FROM pack WHERE sex=%s AND age_min<=%s AND age_max>=%s'
 
     result = ()
     db = _login_as_visitor()

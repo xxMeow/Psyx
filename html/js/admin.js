@@ -28,8 +28,8 @@ $(document).ready(function() {
                         } else {
                             console.log("Unknown Sex.");
                         }
-                        tds[2].textContent = value.age_lower;
-                        tds[3].textContent = value.age_upper;
+                        tds[2].textContent = value.age_min;
+                        tds[3].textContent = value.age_max;
                         tds[4].textContent = value.count;
                         tds[5].textContent = value.date;
                         tds[6].textContent = value.p_id;
@@ -55,9 +55,9 @@ $(document).ready(function() {
         });
     }
     function download(data, p_id) {
-        var json_str = JSON.stringify(data);
+        var json_str = JSON.stringify(data, null, '\t'); // pretty print
         var filename = p_id + ".json"; // use "p_id.json" to name the file
-        var file = new Blob([json_str], {type: "application/json"});
+        var file = new Blob([json_str], { type: "application/json" });
 
         var a = document.createElement('a');
         a.href = URL.createObjectURL(file);
@@ -79,8 +79,8 @@ $(document).ready(function() {
         }
         // put other pack info to it, too
         fd.append('pack_name', document.forms["new_pack_form"]["pack_name"].value);
-        fd.append('age_lower', document.forms["new_pack_form"]["age_lower"].value);
-        fd.append('age_upper', document.forms["new_pack_form"]["age_upper"].value);
+        fd.append('age_min', document.forms["new_pack_form"]["age_min"].value);
+        fd.append('age_max', document.forms["new_pack_form"]["age_max"].value);
         fd.append('sex', document.forms["new_pack_form"]["sex"].value); // this value will be converted to integer at backend
         // start loading animation
         $(".loader").css("visibility", "visible");

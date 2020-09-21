@@ -10,26 +10,23 @@ from logging.handlers import TimedRotatingFileHandler
 
 """
 TODO:
- - use config
  - clear comments
  - check import
  - disable CORS and DEBUG (but open CORS for download api?)
  - custom error description using Response?
- - use another prefix for log files
  - add comments for every re patterns
+ - date format?
 """
-
 
 api = Flask(__name__)
 CORS(api)
-api.debug = True
 
 
 # set logger
 log_name = 'api'
 log_format = '[%(asctime)s * %(levelname)s]\t%(lineno)d \t%(funcName)s: %(message)s'
+log_path = os.path.join(Tool.LOGBASE_PATH, log_name)
 logger = logging.getLogger(log_name)
-log_path = os.path.join(Tool.LOG_PATH, log_name)
 logger.setLevel(logging.INFO) # DEBUG < INFO < WARNING < ERROR < CRITICAL
 # make one 1 log file every midnight, keep for 14 days
 file_handler = TimedRotatingFileHandler(filename=log_path, when="MIDNIGHT", interval=1, backupCount=14)
@@ -81,19 +78,18 @@ def create_pack():
     pack_name = request.form.get('pack_name', type=str)
     if not Tool.check_pack_name(pack_name):
         abort(STATUS.INVALID_INPUT.value, 'Invalid Pack Name')
-    age_lower = request.form.get('age_lower', type=int)
-    age_upper = request.form.get('age_upper', type=int)
-    if not Tool.check_age(age_lower) or not Tool.check_age(age_upper) or age_lower > age_upper:
+    age_min = request.form.get('age_min', type=int)
+    age_max = request.form.get('age_max', type=int)
+    if not Tool.check_age(age_min) or not Tool.check_age(age_max) or age_min > age_max:
         abort(STATUS.INVALID_INPUT.value, 'Invalid Age Bound')
     sex = int(request.form.get('sex', type=str))
     if Tool.check_sex(sex) == False:
         abort(STATUS.INVALID_INPUT.value, 'Invalid Sex')
 
-    # check if there's any folder with the same name
-    UPLOAD_FOLDER = '/home/xmx1025/Psyx/packs'
-    dst_path = os.path.join(UPLOAD_FOLDER, pack_name)
-    if not os.path.exists(UPLOAD_FOLDER):
+    if not os.path.exists(Tool.PACKBASE_PATH):
         abort(STATUS.SERVER_ERROR.value, 'Packbase Damaged!')
+    # check if there's any folder with the same name
+    dst_path = os.path.join(Tool.PACKBASE_PATH, pack_name)
     if os.path.exists(dst_path):
         abort(STATUS.INVALID_INPUT.value, 'Pack Existed')
     
@@ -109,7 +105,7 @@ def create_pack():
             logger.info(' - filtered file %s' % n)
 
     # make pack folder and save files
-    if (len(files) == Tool.PACK_SIZE):
+    if (len(files) == Tool.PACK_SIZE * 2):
         logger.info(' - making pack %s..' % dst_path)
         try:
             os.makedirs(dst_path)
@@ -125,7 +121,7 @@ def create_pack():
         abort(STATUS.INVALID_INPUT.value, 'Invalid Folder Size')
 
     # add to db
-    p_id = PsyxDB.add_pack(sex=sex, age_lower=age_lower, age_upper=age_upper, pack_name=pack_name)
+    p_id = PsyxDB.add_pack(sex=sex, age_min=age_min, age_max=age_max, pack_name=pack_name)
     if p_id == 0:
         shutil.rmtree(dst_path) # delete folder
         abort(STATUS.INVALID_INPUT.value, 'Pack Condition Overlapped')
@@ -142,7 +138,7 @@ def remove_pack():
     p_id = request.args.get('id', type=int)
     pack_name = PsyxDB.delete_pack(p_id)
     if pack_name is not None:
-        pack_path = os.path.join(Tool.PACK_BASE_PATH, pack_name)
+        pack_path = os.path.join(Tool.PACKBASE_PATH, pack_name)
         logger.info(' - removing pack %s..' % pack_path)
         try:
             shutil.rmtree(pack_path)
@@ -202,9 +198,9 @@ def start_reply():
     else:
         result = {}
         result['p_id'] = p_id
-        result['pack_path'] = os.path.join('/packs', pack_name)
+        result['pack_path'] = Tool.PACKBASE_LOC + '/' + pack_name # TODO: check it at frontend
         pics = []
-        for i in os.listdir(os.path.join(Tool.PACK_BASE_PATH, pack_name)):
+        for i in os.listdir(os.path.join(Tool.PACKBASE_PATH, pack_name)):
             pics.append(i)
         pics.sort()
         pics_pairs = [pics[i:i+2] for i in range(0, len(pics), 2)]
