@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Testing</title>
+    <link href="css/testing.css" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="js/testing.js"></script>
+</head>
+
+<body>
+    <div class="soundpool">
+        <audio class="wavsound" preload="auto"><source src="assets/ding.wav" /></audio>
+        <audio class="wavsound" preload="auto"><source src="assets/ding.wav" /></audio>
+        <audio class="wavsound" preload="auto"><source src="assets/ding.wav" /></audio>
+        <audio class="wavsound" preload="auto"><source src="assets/ding.wav" /></audio>
+        <audio class="wavsound" preload="auto"><source src="assets/ding.wav" /></audio>
+    </div>
+
+    <div id="instruction">
+        <h2>스페이스 바를 눌러주세요</h2>
+    </div>
+    <div id="plus" class="hidden">
+        <h1>+</h1>
+    </div>
+    <!--사진 선택-->
+    <div id="selection" class="hidden">
+        <div id="question">
+            <h3>어느 얼굴이 당신과 더 닮았나요?</h3>
+        </div>
+        <img src="" class="imgboxleft" onload="left_loaded()" id="ori">
+        <img src="" class="imgboxright" onload="right_loaded()" id="inv">
+        <div id="question" class="alignleft" style="width: 40%;">
+            <h2>F</h2>
+        </div>
+        <div id="question" class="alignright" style="width: 40%;">
+            <h2>J</h2>
+        </div>
+    </div>
+
+    <footer>
+        <h6 class="hcenter">Copyrights (C) 2020 Korea University. All rights reserved.</h6>
+    </footer>
+</body>
+
+</html>
