@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <link href="css/test.css" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Home</title>
+    <link rel="icon" href="data:,">
+</head>
+
+<body>
+    <div class="info" action="">
+        <h3>다음 항목을 기입해주시기 바랍니다.</h3>
+        <form id="info">
+            <input type="text" id="name" name="name" placeholder="성함" class="smallbox left" required>
+            <input type="number" id="age" name="age" placeholder="만 나이" class="smallbox center" min="0" max="120" required>
+            <select id="sex" name="sex" class="smallbox right" required>
+                <option value="" disabled selected>성별</option>
+                <option value="1">남성</option>
+                <option value="2">여성</option>
+            </select>
+            <input type="text" id="no" name="no" placeholder="ID" class="midbox left" required>
+            <input type="text" id="phone" name="phone" placeholder="연락처 (010-XXXX-XXXX)" class="midbox right" required>
+            <input type="text" id="email" name="email" placeholder="이메일 (example@gmail.com)" class="inputalign" required>
+            <input type="submit" class="submitbtn" value="제출">
+        </form>
+    </div>
+    <footer>
+        <h6 class="hcenter">Copyrights (C) 2020 Korea University. All rights reserved.</h6>
+    </footer>
+    <script src="js/test.js"></script>
+</body>
+
+</html>

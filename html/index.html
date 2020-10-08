@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <link href="css/index.css" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+    </script>
+    <title>Home</title>
+    <link rel="icon" href="data:,">
+</head>
+
+<body>
+    <!-- 배경비디오
+    <video autoplay muted loop id="myVideo">
+        <source src="assets/video.mp4" type="video/mp4">
+    </video>
+    -->
+    <div class="content">
+        <ul>
+            <li><span>MoM</span>은 '마음의 거울(<span>Mirror of Mind</span>)'을 뜻합니다.</li>
+            <li>참여자는 약 5분에서 15분 동안 화면에 나오는 인물사진들 중 나와 더 닮은 사진들을 고르면 됩니다.</li>
+            <li>검사 후 참여자는 자신의 마음에 대해 조금 더 잘 이해할 수 있는 결과지를 제공받게 됩니다.</li>
+            <li>내 마음의 거울(<span>M</span>y<span>M</span>o<span>M</span>)을 들여다보고 싶은 분들에게 이 검사를 추천합니다.</li>
+        </ul>
+    </div>
+    <button id="testBtn" onclick="goToTest()">시작</button>
+    <button id="adminBtn" onclick="goToAdmin()">Admin</button>
+
+    <footer>
+        <h6 class="hcenter">Copyrights (C) 2020 Korea University. All rights reserved.</h6>
+    </footer>
+    <script>
+        function goToTest() {
+            window.location.href = "test.html";
+        }
+        function goToAdmin() {
+            window.location.href = "admin.html";
+        }
+    </script>
+</body>
+
+</html>

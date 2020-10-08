@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="js/admin.js"></script>
+        <link rel="stylesheet" href="css/admin.css">
+        <title>Admin</title>
+        <link rel="icon" href="data:,">
+    </head>
+    <body>
+        <header>
+            <h1>Admin</h1>
+        </header>
+        <main>
+            <section class="add_pack">
+                <h2>새 세트 추가</h2>
+                <form id="new_pack_form" method="post" enctype="multipart/form-data">
+                    <input type="text" name="pack_name" placeholder="Folder Name" autocomplete="off" required>
+                    <select name="sex" required>
+                        <option value="" disabled selected>성별</option>
+                        <option value="1">남성</option>
+                        <option value="2">여성</option>
+                    </select>
+                    <input type="number" name="age_min" placeholder="Min" min="0" max="120" step="1" required>
+                    <input type="number" name="age_max" placeholder="Max" min="0" max="120" step="1" required>
+                    <input type="file" name="file" id="pack_folder" accept="image/*" webkitdirectory required>
+                    <div class="loader">
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                    </div>
+                    <input type="submit" value="Upload" />
+                </form>
+            </section>
+
+            <section class="list">
+                <h2>기존 세트 관리</h2>
+                <table id="pack_list">
+                    <thead>
+                        <tr>
+                            <th scope="col">Folder</th>
+                            <th scope="col">Sex</th>
+                            <th scope="col">Min</th>
+                            <th scope="col">Max</th>
+                            <th scope="col">Count</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">ID</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- insert rows here -->
+                        <template id="row_tplt">
+                            <tr class="old">
+                                <td>foldername</td>
+                                <td>sex</td>
+                                <td>min</td>
+                                <td>max</td>
+                                <td>count</td>
+                                <td>date</td>
+                                <td>p_id</td>
+                                <td>
+                                    <svg class="download_btn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                        <path d="M14.31,16.38,13,17.64V12a1,1,0,0,0-2,0v5.59l-1.29-1.3a1,1,0,0,0-1.42,1.42l3,3A1,1,0,0,0,12,21a1,1,0,0,0,.69-.28l3-2.9a1,1,0,1,0-1.38-1.44Z"/>
+                                        <path d="M17.67,7A6,6,0,0,0,6.33,7a5,5,0,0,0-3.08,8.27A1,1,0,1,0,4.75,14,3,3,0,0,1,7,9h.1a1,1,0,0,0,1-.8,4,4,0,0,1,7.84,0,1,1,0,0,0,1,.8H17a3,3,0,0,1,2.25,5,1,1,0,0,0,.09,1.42,1,1,0,0,0,.66.25,1,1,0,0,0,.75-.34A5,5,0,0,0,17.67,7Z"/>
+                                    </svg>
+                                    <svg class="delete_btn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                        <path d="M13.41,12l4.3-4.29a1,1,0,1,0-1.42-1.42L12,10.59,7.71,6.29A1,1,0,0,0,6.29,7.71L10.59,12l-4.3,4.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l4.29,4.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"/>
+                                    </svg>
+                                </td>
+                            </tr>
+                        </template>
+                        <template id="empty_row_tplt">
+                            <tr class="old">
+                                <td colspan="8">None Data</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th scope="row">총 세트 수:</th>
+                            <td colspan="7">0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </section>
+        </main>
+    </body>
+</html>

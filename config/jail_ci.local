@@ -1,0 +1,15 @@
+[DEFAULT]
+# white list
+ignoreip = 127.0.0.1 10.10.0.0/24 172.31.0.0/24 192.168.0.0/24
+# ip which failed to login for 3 times within 10min will be banned for 86400sec(= 1 day)
+bantime = 86400
+maxretry = 3
+findtime = 600
+# use ufw as default firewall
+banaction = ufw
+ 
+[ci-ssh]
+enabled = true
+filter = sshd
+port = 1307
+logpath = /var/log/auth.log

@@ -1,0 +1,104 @@
+body {
+    background-image: url("../assets/home.png");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    padding: 0px;
+    color: whitesmoke;
+    font-family: "Montserrat", Helvetica, sans-serif;
+}
+
+span {
+    color: goldenrod;
+    font-weight: bold;
+}
+
+#id {
+    display: inline-block;
+    top: 50%;
+    left: 50%;
+    width: 50%;
+    height: 50%;
+}
+
+/* 배경비디오
+#myVideo {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%; 
+    min-height: 100%;
+    max-width: 105%;
+    max-height: 105%;
+}
+*/
+
+h1 {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    font-size: 3em;
+}
+
+.content {
+    position: absolute;
+    top: 5%;
+    left: 2%;
+    color: black;
+    padding: 0px;
+}
+
+/* Style the button used to pause/play the video */
+#testBtn {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    width: 10%;
+    font-size: 1.2em;
+    padding: 10px;
+    border: none;
+    background: goldenrod;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 50px;
+}
+
+#adminBtn {
+    position: absolute;
+    display:block;
+    bottom: 2%;
+    left: 2%;
+    width: 5%;
+    font-size: 0.8em;
+    padding: 10px;
+    border: none;
+    text-align: center;
+    background: goldenrod;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 50px;
+}
+  
+
+#testBtn:hover, #adminBtn:hover {
+    background: silver;
+    color: black;
+}
+
+footer{
+    position: fixed;
+    display: block;
+    bottom: 0px;
+    right: 10%;
+    width: 80%;
+    height: 5%;
+    margin: 0%;
+    padding-bottom: 2%;  
+    text-align: center;
+    font-family: "Montserrat", Helvetica, sans-serif;
+    color: dimgrey;
+}
