@@ -71,7 +71,7 @@
         "result": "succeed",
         "p_id": 10
     }
-```
+    ```
     
     - 실패할 때 failed로 반환됨 (에러 메세지는 `result[message]`로 읽을 수 있음)
     - 추가가 성공적으로 실행됐을 때 새로고침하라고 팝업창으로 사용자에게 알림 (필요할지 모르겠지만 새로 추가된 세트의 `p_id`도 반환됨)
@@ -87,8 +87,8 @@
         "result": "succeed"
     }
     ```
-    
-    - 실패할 때 failed로 반환됨 (에러 메세지는 `result[message]`로 읽을 수 있음)
+
+
 
 ##### `GET : ohfish.me/api/admin/download?id=7`
 
